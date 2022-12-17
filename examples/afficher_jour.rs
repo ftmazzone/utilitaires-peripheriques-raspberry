@@ -125,8 +125,8 @@ pub async fn afficher_image(
     let text_to_display: String = text_to_display_chars.into_iter().collect();
 
     let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height) / 4.;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 4.;
     context.move_to(x_offset, y_offset);
     context.show_text(&text_to_display)?;
 
@@ -136,8 +136,8 @@ pub async fn afficher_image(
         .format_localized("%e %B", Locale::fr_FR)
         .to_string();
     let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height) / 2.;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 2.;
     context.move_to(x_offset, y_offset);
     context.show_text(text_to_display)?;
 
@@ -148,8 +148,8 @@ pub async fn afficher_image(
         .to_string();
 
     let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height + 120. / 4.) * 3. / 4.;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 3. / 4.;
     context.move_to(x_offset, y_offset);
     context.show_text(text_to_display)?;
 

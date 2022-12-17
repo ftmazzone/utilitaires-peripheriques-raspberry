@@ -13,4 +13,4 @@ chrono = { version = "0", features = ["unstable-locales"] }
 flume = { version = "0" }
 rppal = { version = "0" }
 log = "0"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal"] }
