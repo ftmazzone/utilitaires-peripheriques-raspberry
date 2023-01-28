@@ -54,7 +54,7 @@ impl Veml7700 {
         let mut cpt = 0;
         while cpt < 10 {
             let mut buffer = [0u8; 2];
-            self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
+            self.i2c.block_read(0x05, &mut buffer)?;
             print!("buffer {:?}", buffer);
             cpt = cpt + 1;
             thread::sleep(Duration::from_secs(1));
