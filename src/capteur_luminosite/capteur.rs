@@ -30,19 +30,19 @@ impl Veml7700 {
         self.i2c
             .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
 
-        let gain = Instruction::AlsGain1_8.adresse();
-        let integration_time = Instruction::Als100MS.adresse();
+        let gain = 0x00;//Instruction::AlsGain1_8.adresse();
+        let integration_time = 0x00;//Instruction::Als100MS.adresse();
         let persistance = 0x00;
         let interrupt_enable = 0x00;
         let shutdown = 0x00;
 
-        let config_data = gain << 11
+         let config_data:u16 = gain << 11
             | integration_time << 6
             | persistance << 4
             | interrupt_enable << 1
             | shutdown << 0;
 
-        let config_data = config_data.to_be_bytes();
+        let config_data = config_data.to_le_bytes();
         println!("configuration {:?} big endian {}", config_data, self.big_endian);
 
         self.i2c
@@ -50,10 +50,6 @@ impl Veml7700 {
             .unwrap();
 
         thread::sleep(Duration::from_secs(1));
-
-        let mut buffer = [0u8; 2];
-        self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
-        print!("buffer {:?}", buffer);
 
         let mut cpt = 0;
         while cpt < 10 {
