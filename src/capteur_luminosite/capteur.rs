@@ -29,7 +29,7 @@ impl Veml7700 {
             .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
         let mut buffer = [0u8; 2];
         self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
-        print!("{:?}", buffer);
+        print!("buffer {:?}", buffer);
         Ok(())
     }
 }
