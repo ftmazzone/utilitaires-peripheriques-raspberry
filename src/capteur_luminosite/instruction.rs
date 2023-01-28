@@ -59,7 +59,7 @@ impl Instruction {
         match self {
             Instruction::AlsConfig=>0x00,
             Instruction::Als => 0x04,
-            Instruction::White => 0x05,
+            Instruction::AlsWhite => 0x05,
 
             Instruction::AlsGain1 => 0x0,
             Instruction::AlsGain2 => 0x01,
