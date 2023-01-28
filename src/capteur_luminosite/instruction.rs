@@ -55,7 +55,7 @@ impl AdresseCapteur {
 }
 
 impl Instruction {
-    pub(crate) fn adresse(self) -> u16 {
+    pub(crate) fn adresse(self) -> u8 {
         match self {
             Instruction::AlsConfig=>0x00,
             Instruction::Als => 0x04,
