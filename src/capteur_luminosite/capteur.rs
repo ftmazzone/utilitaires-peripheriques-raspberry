@@ -34,13 +34,13 @@ impl Veml7700 {
         let integration_time = 0x00; //Instruction::Als100MS.adresse();
         let persistance = 0x00;
         let interrupt_enable = 0x00;
-        let shutdown = 0x00;
+        let shutdown = 0x01;
 
         let config_data: u16 = gain << 11
             | integration_time << 6
             | persistance << 4
             | interrupt_enable << 1
-            | shutdown << 1;
+            | shutdown << 0;
 
         let config_data = config_data.to_le_bytes();
         println!(
