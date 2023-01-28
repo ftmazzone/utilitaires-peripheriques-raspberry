@@ -1,3 +1,5 @@
+use std::{thread, time::Duration};
+
 use rppal::i2c::I2c;
 
 use crate::capteur_luminosite::instruction::{
@@ -41,19 +43,26 @@ impl Veml7700 {
             | shutdown << 0;
 
         let config_data = config_data.to_le_bytes();
-        println!("configuration {:?}",config_data);
+        println!("configuration {:?}", config_data);
 
         self.i2c
             .block_write(Instruction::AlsConfig as u8, &config_data)
             .unwrap();
 
-        let mut buffer = [0u8; 2];
-        self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
-        print!("buffer {:?}", buffer);
+        thread::sleep(Duration::from_secs(1));
 
         let mut buffer = [0u8; 2];
         self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
         print!("buffer {:?}", buffer);
+
+        let mut cpt = 0;
+        while cpt < 10 {
+            let mut buffer = [0u8; 2];
+            self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
+            print!("buffer {:?}", buffer);
+            cpt = cpt + 1;
+            thread::sleep(Duration::from_secs(1));
+        }
         Ok(())
     }
 }
