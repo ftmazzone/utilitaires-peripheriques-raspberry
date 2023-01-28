@@ -41,6 +41,7 @@ impl Veml7700 {
             | shutdown << 0;
 
         let config_data = config_data.to_le_bytes();
+        println!("configuration {:?}",config_data);
 
         self.i2c
             .block_write(Instruction::AlsConfig as u8, &config_data)
