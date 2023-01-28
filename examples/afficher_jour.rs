@@ -30,7 +30,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Initialiser le capteur de luminosité
-     let capteur_luminosite = Veml7700::new();
+     match Veml7700::new(){
+        Ok(mut capteur_luminosite)=>{
+            capteur_luminosite.demarrer().unwrap();
+        },
+        Err(err)=>{
+            log::info!("Erreur lors l'initialisation du capteur de luminosité {err}");
+        }
+     }
+    
     
 
     // Initialiser l'écran
