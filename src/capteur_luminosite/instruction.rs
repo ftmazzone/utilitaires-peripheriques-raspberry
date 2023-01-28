@@ -77,12 +77,12 @@ impl Instruction {
 }
 
 impl GainValues {
-    pub(crate) fn adresse(self) -> f32 {
+    pub(crate) fn adresse(self) -> u16 {
         match self {
-            GainValues::AlsGain1 => 1.,
-            GainValues::AlsGain2 => 2.,
-            GainValues::AlsGain1_4 => 0.25,
-            GainValues::AlsGain1_8 => 0.125,
+            GainValues::AlsGain1 => 0x00,
+            GainValues::AlsGain2 => 0x01,
+            GainValues::AlsGain1_4 => 0x02,
+            GainValues::AlsGain1_8 => 0x03,
         }
     }
 }

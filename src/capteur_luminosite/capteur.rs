@@ -28,7 +28,7 @@ impl Veml7700 {
         self.i2c
             .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
 
-        let gain: u16 = 0;
+        let gain: u16 = GainValues::AlsGain1_8.adresse();
         let integration_time = 0;
         let persistance = 0;
         let interrupt_enable = 0;
