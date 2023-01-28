@@ -34,7 +34,7 @@ impl Veml7700 {
         let integration_time = 0x00; //Instruction::Als100MS.adresse();
         let persistance = 0x00;
         let interrupt_enable = 0x00;
-        let shutdown = 0x01;
+        let shutdown = 0x00;
 
         let config_data: u16 = gain << 11
             | integration_time << 6
@@ -66,7 +66,7 @@ impl Veml7700 {
             println!("buffer light 0x{:x?} {}",buffer,u16::from_le_bytes( buffer));
 
             self.i2c.block_read(Instruction::AlsWhite.adresse(), &mut buffer)?;
-            println!("buffer white {:x?} {}",buffer,u16::from_le_bytes(  buffer));
+            println!("buffer white 0x{:x?} {}",buffer,u16::from_le_bytes(  buffer));
             cpt = cpt + 1;
             thread::sleep(Duration::from_secs(1));
         }
