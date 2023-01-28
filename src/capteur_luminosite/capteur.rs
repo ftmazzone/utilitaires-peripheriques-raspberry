@@ -40,7 +40,7 @@ impl Veml7700 {
             | integration_time << 6
             | persistance << 4
             | interrupt_enable << 1
-            | shutdown << 0;
+            | shutdown << 1;
 
         let config_data = config_data.to_le_bytes();
         println!(
@@ -63,10 +63,10 @@ impl Veml7700 {
         while cpt < 10 {
             let mut buffer = [0u8; 2];
             self.i2c.block_read(Instruction::Als.adresse(), &mut buffer)?;
-            println!("buffer light 0x{:02x}",u16::from_le_bytes( buffer));
+            println!("buffer light 0x{:x?}",u16::from_le_bytes( buffer));
 
             self.i2c.block_read(Instruction::AlsWhite.adresse(), &mut buffer)?;
-            println!("buffer white {:?}",u16::from_le_bytes(  buffer));
+            println!("buffer white {:x?}",u16::from_le_bytes(  buffer));
             cpt = cpt + 1;
             thread::sleep(Duration::from_secs(1));
         }
