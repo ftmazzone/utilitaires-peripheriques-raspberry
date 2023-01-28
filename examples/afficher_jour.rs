@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         r.store(false, Ordering::SeqCst);
     });
 
-    printf("coucou");
+    println!("coucou");
 
     // Initialiser le capteur de luminosité
      match Veml7700::new(){
