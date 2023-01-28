@@ -6,8 +6,8 @@ pub enum AdresseCapteur {
 /// Commandes pour contrôler le capteur
 #[derive(Copy, Clone)]
 pub(crate) enum Instruction {
-    ALS,
-    WHITE,
+    Als,
+    White,
 
     // Ambient light sensor gain settings
     AlsGain1,
@@ -54,10 +54,10 @@ impl AdresseCapteur {
 }
 
 impl Instruction {
-    pub(crate) fn adresse(self) -> u16 {
+    pub(crate) fn adresse(self) -> u8 {
         match self {
-            Instruction::ALS => 0x04,
-            Instruction::WHITE => 0x05,
+            Instruction::Als => 0x04,
+            Instruction::White => 0x05,
 
             Instruction::AlsGain1 => 0x0,
             Instruction::AlsGain2 => 0x01,
