@@ -42,8 +42,8 @@ impl Veml7700 {
             | interrupt_enable << 1
             | shutdown << 0;
 
-        let config_data = config_data.to_le_bytes();
-        println!("configuration {:?}", config_data);
+        let config_data = config_data.to_be_bytes();
+        println!("configuration {:?} big endian {}", config_data, self.big_endian);
 
         self.i2c
             .block_write(Instruction::AlsConfig as u8, &config_data)
