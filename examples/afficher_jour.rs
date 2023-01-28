@@ -13,6 +13,7 @@ use chrono::{Local, Locale, Timelike};
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
 use tokio::time::timeout;
+use ecran::{capteur_luminosite::capteur::Veml7700};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,6 +29,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         r.store(false, Ordering::SeqCst);
     });
 
+    // Initialiser le capteur de luminosité
+     let capteur_luminosite = Veml7700::new();
+    
 
     // Initialiser l'écran
     let (tx, rx) = flume::unbounded::<bool>();
