@@ -28,9 +28,25 @@ impl Veml7700 {
         self.i2c
             .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
 
-        let mut buffer = [0u8; 2];
+        let gain: u16 = 0;
+        let integration_time = 0;
+        let persistance = 0;
+        let interrupt_enable = 0;
+        let shutdown = 0;
+
+        let config_data = gain << 11
+            | integration_time << 6
+            | persistance << 4
+            | interrupt_enable << 1
+            | shutdown << 0;
+
+        let config_data = config_data.to_le_bytes();
+
         self.i2c
-            .block_write(Instruction::AlsConfig as u8, &mut buffer).unwrap();
+            .block_write(Instruction::AlsConfig as u8, &config_data)
+            .unwrap();
+
+        let mut buffer = [0u8; 2];
         self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
         print!("buffer {:?}", buffer);
 
