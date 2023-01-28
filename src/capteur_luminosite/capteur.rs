@@ -63,10 +63,10 @@ impl Veml7700 {
         while cpt < 10 {
             let mut buffer = [0u8; 2];
             self.i2c.block_read(Instruction::Als.adresse(), &mut buffer)?;
-            println!("buffer light {:?}", buffer);
+            println!("buffer light {:?}",u16::from_le_bytes( buffer));
 
             self.i2c.block_read(Instruction::AlsWhite.adresse(), &mut buffer)?;
-            println!("buffer white {:?}", buffer);
+            println!("buffer white {:?}",u16::from_le_bytes(  buffer));
             cpt = cpt + 1;
             thread::sleep(Duration::from_secs(1));
         }
