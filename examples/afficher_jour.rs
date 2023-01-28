@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             capteur_luminosite.demarrer().unwrap();
         },
         Err(err)=>{
-            log::info!("Erreur lors l'initialisation du capteur de luminosité {err}");
+            log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
         }
      }
     
