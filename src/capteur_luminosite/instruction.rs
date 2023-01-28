@@ -8,7 +8,7 @@ pub enum AdresseCapteur {
 pub(crate) enum Instruction {
     AlsConfig,
     Als,
-    White,
+    AlsWhite,
 
     // Ambient light sensor gain settings
     AlsGain1,
