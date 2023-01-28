@@ -6,6 +6,7 @@ pub enum AdresseCapteur {
 /// Commandes pour contrôler le capteur
 #[derive(Copy, Clone)]
 pub(crate) enum Instruction {
+    AlsConfig,
     Als,
     White,
 
@@ -56,6 +57,7 @@ impl AdresseCapteur {
 impl Instruction {
     pub(crate) fn adresse(self) -> u8 {
         match self {
+            Instruction::AlsConfig => 0x00,
             Instruction::Als => 0x04,
             Instruction::White => 0x05,
 

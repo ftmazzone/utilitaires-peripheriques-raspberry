@@ -27,6 +27,13 @@ impl Veml7700 {
     pub fn demarrer(&mut self) -> Result<(), rppal::i2c::Error> {
         self.i2c
             .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
+
+        let mut buffer = [0u8; 2];
+        self.i2c
+            .block_write(Instruction::AlsConfig as u8, &mut buffer).unwrap();
+        self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
+        print!("buffer {:?}", buffer);
+
         let mut buffer = [0u8; 2];
         self.i2c.block_read(Instruction::Als as u8, &mut buffer)?;
         print!("buffer {:?}", buffer);
