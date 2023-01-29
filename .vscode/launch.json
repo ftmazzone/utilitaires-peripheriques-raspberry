@@ -1,0 +1,64 @@
+{
+    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
+    // Pointez pour afficher la description des attributs existants.
+    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'ecran'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=ecran"
+                ],
+                "filter": {
+                    "name": "ecran",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'afficher_jour'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=afficher_jour",
+                    "--package=ecran"
+                ],
+                "filter": {
+                    "name": "afficher_jour",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'afficher_jour'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=afficher_jour",
+                    "--package=ecran"
+                ],
+                "filter": {
+                    "name": "afficher_jour",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
