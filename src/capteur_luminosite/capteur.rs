@@ -1,8 +1,6 @@
 use rppal::i2c::I2c;
 
-use crate::capteur_luminosite::instruction::{
-    AdresseCapteur, GainValues, Instruction, IntegrationTimeValues,
-};
+use crate::capteur_luminosite::instruction::{AdresseCapteur, Instruction};
 
 pub struct Veml7700 {
     i2c: I2c,
@@ -26,11 +24,14 @@ impl Veml7700 {
             mode_economie_energie: Instruction::AlsPowerSaveMode1.adresse(),
         };
 
-        vmel7700.configurer_capteur();
+        vmel7700
+            .i2c
+            .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
+
         Ok(vmel7700)
     }
 
-    fn configurer_capteur(&mut self) {
+    fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
         let configuration = (self.gain as u16) << 11
             | (self.temps_integration as u16) << 6
             | (self.persistance as u16) << 4
@@ -43,13 +44,10 @@ impl Veml7700 {
         };
         self.i2c
             .block_write(Instruction::AlsConfig as u8, &configuration)
-            .unwrap();
     }
 
-    pub fn demarrer(&mut self) -> Result<(), rppal::i2c::Error> {
-        self.i2c
-            .set_slave_address(AdresseCapteur::I2cAddress.adresse())?;
-        self.configurer_capteur();
+    pub fn initialiser(&mut self) -> Result<(), rppal::i2c::Error> {
+        self.configurer_capteur()?;
         Ok(())
     }
 
@@ -95,4 +93,14 @@ impl Veml7700 {
             false => Ok(u16::from_le_bytes(tampon)),
         }
     }
+
+    // pub fn lire_lux(&mut self)->Result<u16,rppal::i2c::Error>{
+    //     let factor = get_lux_raw_conversion_factor(it, gain);
+    //     let lux = f32::from(raw_als) * f32::from(factor);
+    //     if (gain == Gain::OneQuarter || gain == Gain::OneEighth) && lux > 1000.0 {
+    //         correct_high_lux(lux) as f32
+    //     } else {
+    //         lux as f32
+    //     }
+    // }
 }
