@@ -38,9 +38,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
          let luminosite=   capteur_luminosite.lire_luminosite().unwrap();
          let luminosite_blanche = capteur_luminosite.lire_luminosite_blanche().unwrap();
-         let luminosite_lux = capteur_luminosite.lire_lux().unwrap();
+         let luminosite_lux = capteur_luminosite.lire_luminosite_lux().unwrap();
 
-         println!("Luminosité: {luminosite} Luminosité blanche {luminosite_blanche} Luminosité lux {luminosite_lux}");
+         println!("Luminosité: {luminosite}\nLuminosité blanche {luminosite_blanche}\nLuminosité lux {luminosite_lux}");
         },
         Err(err)=>{
             log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");

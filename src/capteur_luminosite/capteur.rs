@@ -109,7 +109,7 @@ impl Veml7700 {
             * (gain_max / Gain::valeur(self.gain)) as f64;
     }
 
-    pub fn lire_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
+    pub fn lire_luminosite_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
         let resolution = self.resolution();
         let luminosite = self.lire_luminosite()? as f64;
         Ok(resolution * luminosite)
