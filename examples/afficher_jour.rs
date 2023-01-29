@@ -166,11 +166,9 @@ pub async fn afficher_image(
     contexte.set_source_rgb(255.0, 255.0, 255.0);
     contexte.paint()?;
 
-    println!(
-        "{}",
-        Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10.
-    );
-    if Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10. < 1. {
+    if Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10. < 1.
+        || luminosite_lux == String::new()
+    {
         afficher_jour(&contexte)?;
     } else {
         afficher_valeurs_capteurs(&contexte, luminosite_lux)?;
