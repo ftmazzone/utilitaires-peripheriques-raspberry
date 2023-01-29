@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if capteur_luminosite.is_some() {
             let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
 
-            match capteur_luminosite.arrêter() {
+            match capteur_luminosite.demarrer() {
                 Ok(_) => {}
                 Err(err) => log::error!("Erreur lors du démarrage du capteur de luminosité {err}"),
             }
