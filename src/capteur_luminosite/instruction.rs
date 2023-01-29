@@ -5,31 +5,40 @@ pub enum AdresseCapteur {
 
 /// Commandes pour contrôler le capteur
 #[derive(Copy, Clone)]
-pub enum Instruction {
+pub enum Registre {
     AlsConfig,
     Als,
     AlsWhite,
+}
 
-    // Ambient light sensor gain settings
+#[derive(Copy, Clone)]
+pub enum Gain {
     AlsGain1,
     AlsGain2,
     AlsGain1_8,
     AlsGain1_4,
+}
 
-    // Ambient light intergration time settings
+#[derive(Copy, Clone)]
+pub enum TempsIntegration {
     AlsIt25MS,
     AlsIt50MS,
     AlsIt100MS,
     AlsIt200MS,
     AlsIt400MS,
     AlsIt800MS,
+}
 
-    // Persistence
+#[derive(Copy, Clone)]
+pub enum Persistance {
     AlsPers1,
     AlsPers2,
     AlsPers4,
     AlsPers8,
+}
 
+#[derive(Copy, Clone)]
+pub enum ModeEconomieEnergie {
     AlsPowerSaveMode1,
     AlsPowerSaveMode2,
     AlsPowerSaveMode3,
@@ -45,64 +54,78 @@ impl AdresseCapteur {
     }
 }
 
-impl Instruction {
+impl Registre {
     pub(crate) fn adresse(self) -> u8 {
         match self {
-            Instruction::AlsConfig => 0x00,
-            Instruction::Als => 0x04,
-            Instruction::AlsWhite => 0x05,
-
-            Instruction::AlsGain1 => 0x00,
-            Instruction::AlsGain2 => 0x01,
-            Instruction::AlsGain1_8 => 0x02,
-            Instruction::AlsGain1_4 => 0x03,
-
-            Instruction::AlsIt25MS => 0x0C,
-            Instruction::AlsIt50MS => 0x08,
-            Instruction::AlsIt100MS => 0x00,
-            Instruction::AlsIt200MS => 0x01,
-            Instruction::AlsIt400MS => 0x02,
-            Instruction::AlsIt800MS => 0x03,
-
-            Instruction::AlsPers1 => 0x00,
-            Instruction::AlsPers2 => 0x01,
-            Instruction::AlsPers4 => 0x02,
-            Instruction::AlsPers8 => 0x03,
-
-            Instruction::AlsPowerSaveMode1 => 0x00,
-            Instruction::AlsPowerSaveMode2 => 0x01,
-            Instruction::AlsPowerSaveMode3 => 0x02,
-            Instruction::AlsPowerSaveMode4 => 0x03,
+            Registre::AlsConfig => 0x00,
+            Registre::Als => 0x04,
+            Registre::AlsWhite => 0x05,
         }
     }
 }
-
-pub(crate) struct IntegrationTime {}
-
-impl IntegrationTime {
-    pub(crate) fn valeur(instruction: Instruction) -> f64 {
-        match instruction {
-            Instruction::AlsIt25MS => 25.,
-            Instruction::AlsIt50MS => 50.,
-            Instruction::AlsIt100MS => 100.,
-            Instruction::AlsIt200MS => 200.,
-            Instruction::AlsIt400MS => 400.,
-            Instruction::AlsIt800MS => 800.,
-            _ => 0.,
-        }
-    }
-}
-
-pub(crate) struct Gain {}
 
 impl Gain {
-    pub(crate) fn valeur(instruction: Instruction) -> f64 {
+    pub(crate) fn adresse(self) -> u8 {
+        match self {
+            Gain::AlsGain1 => 0x00,
+            Gain::AlsGain2 => 0x01,
+            Gain::AlsGain1_8 => 0x02,
+            Gain::AlsGain1_4 => 0x03,
+        }
+    }
+
+    pub(crate) fn valeur(instruction: Gain) -> f64 {
         match instruction {
-            Instruction::AlsGain1 => 1.,
-            Instruction::AlsGain2 => 2.,
-            Instruction::AlsGain1_4 => 0.25,
-            Instruction::AlsGain1_8 => 0.125,
-            _ => 0.,
+            Gain::AlsGain1 => 1.,
+            Gain::AlsGain2 => 2.,
+            Gain::AlsGain1_4 => 0.25,
+            Gain::AlsGain1_8 => 0.125,
+        }
+    }
+}
+
+impl TempsIntegration {
+    pub(crate) fn adresse(self) -> u8 {
+        match self {
+            TempsIntegration::AlsIt25MS => 0x0C,
+            TempsIntegration::AlsIt50MS => 0x08,
+            TempsIntegration::AlsIt100MS => 0x00,
+            TempsIntegration::AlsIt200MS => 0x01,
+            TempsIntegration::AlsIt400MS => 0x02,
+            TempsIntegration::AlsIt800MS => 0x03,
+        }
+    }
+
+    pub(crate) fn valeur(instruction: TempsIntegration) -> f64 {
+        match instruction {
+            TempsIntegration::AlsIt25MS => 25.,
+            TempsIntegration::AlsIt50MS => 50.,
+            TempsIntegration::AlsIt100MS => 100.,
+            TempsIntegration::AlsIt200MS => 200.,
+            TempsIntegration::AlsIt400MS => 400.,
+            TempsIntegration::AlsIt800MS => 800.,
+        }
+    }
+}
+
+impl Persistance {
+    pub(crate) fn adresse(self) -> u8 {
+        match self {
+            Persistance::AlsPers1 => 0x00,
+            Persistance::AlsPers2 => 0x01,
+            Persistance::AlsPers4 => 0x02,
+            Persistance::AlsPers8 => 0x03,
+        }
+    }
+}
+
+impl ModeEconomieEnergie {
+    pub(crate) fn adresse(self) -> u8 {
+        match self {
+            ModeEconomieEnergie::AlsPowerSaveMode1 => 0x00,
+            ModeEconomieEnergie::AlsPowerSaveMode2 => 0x01,
+            ModeEconomieEnergie::AlsPowerSaveMode3 => 0x02,
+            ModeEconomieEnergie::AlsPowerSaveMode4 => 0x03,
         }
     }
 }
