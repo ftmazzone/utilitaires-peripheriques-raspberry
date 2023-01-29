@@ -13,7 +13,9 @@ use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
+use tokio::time::sleep;
 use tokio::time::timeout;
+use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -87,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
 
             match capteur_luminosite.demarrer() {
-                Ok(_) => {}
+                Ok(_) => sleep(Duration::from_millis(100)).await,
                 Err(err) => log::error!("Erreur lors du démarrage du capteur de luminosité {err}"),
             }
 
@@ -115,6 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
             afficher_image(&mut ecran, cpt, luminosite_lux).await?;
             cpt = (cpt + 1) % 2;
+            println!("test cpt {cpt}");
         }
 
         match resultat {
@@ -207,7 +210,10 @@ fn afficher_jour(contexte: &Context) -> Result<(), Box<dyn std::error::Error>> {
         .format_localized("%A", Locale::fr_FR)
         .to_string();
     let mut texte_a_afficher_characteres: Vec<char> = texte_a_afficher.chars().collect();
-    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0].to_uppercase().nth(0).unwrap();
+    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0]
+        .to_uppercase()
+        .nth(0)
+        .unwrap();
     let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
 
     let text_extent = contexte.text_extents(&texte_a_afficher)?;
@@ -250,7 +256,7 @@ fn afficher_valeurs_capteurs(
 
     contexte.set_font_size(50.0);
     contexte.set_source_rgb(0., 0., 0.);
-    let texte_a_afficher =format!("Luminosité: {luminosite_lux} lux");
+    let texte_a_afficher = format!("Luminosité: {luminosite_lux} lux");
 
     let text_extent = contexte.text_extents(&texte_a_afficher)?;
     let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
