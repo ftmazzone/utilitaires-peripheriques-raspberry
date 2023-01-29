@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialiser le capteur de luminosité
      match Veml7700::new(){
         Ok(mut capteur_luminosite)=>{
-            capteur_luminosite.demarrer().unwrap();
+            capteur_luminosite.initialiser().unwrap();
 
          let luminosite=   capteur_luminosite.lire_luminosite().unwrap();
          let luminosite_blanche = capteur_luminosite.lire_luminosite_blanche().unwrap();
