@@ -71,7 +71,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if eclairage.as_mut().is_some() {
         eclairage.as_mut().unwrap().demarrer();
     }
-    afficher_image(&mut ecran).await?;
+    afficher_image(&mut ecran, 0, String::new()).await?;
+
+    let mut cpt = 0;
 
     while operationnel.load(Ordering::SeqCst)
         && !rx.is_disconnected()
@@ -92,6 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match capteur_luminosite.lire_luminosite_lux() {
                 Ok(valeur) => {
                     luminosite_lux = valeur.to_string();
+                    log::info!("Luminosité mesurée {valeur} lux")
                 }
                 Err(err) => {
                     log::error!("Erreur lors de lecture de luminosité {err}");
@@ -106,11 +109,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else {
             luminosite_lux = String::new();
         }
-        log::info!("Luminosité lux : {luminosite_lux}");
 
-        // Affichager l'image toutes les cinq minutes
+        // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
-            afficher_image(&mut ecran).await?;
+            afficher_image(&mut ecran, cpt, luminosite_lux).await?;
+            cpt = (cpt + 1) % 2;
         }
 
         match resultat {
@@ -145,6 +148,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn afficher_image(
     ecran: &mut Option<Wepd7In5BV2>,
+    cpt: u8,
+    luminosite_lux: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Initialise cairo
     let mut surface = ImageSurface::create(
@@ -154,58 +159,23 @@ pub async fn afficher_image(
     )
     .expect("Impossible d'initialiser la surface");
 
-    let context = Context::new(&mut surface)?;
+    let contexte = Context::new(&mut surface)?;
 
-    context.set_source_rgb(255.0, 255.0, 255.0);
-    context.paint()?;
+    contexte.set_source_rgb(255.0, 255.0, 255.0);
+    contexte.paint()?;
 
-    log::info!("Afficher le jour courant");
-    context.select_font_face("serif", cairo::FontSlant::Normal, cairo::FontWeight::Normal);
-
-    context.set_font_size(120.0);
-    context.set_source_rgb(255., 0., 0.);
-    let text_to_display = &Local::now()
-        .format_localized("%A", Locale::fr_FR)
-        .to_string();
-    let mut text_to_display_chars: Vec<char> = text_to_display.chars().collect();
-    text_to_display_chars[0] = text_to_display_chars[0].to_uppercase().nth(0).unwrap();
-    let text_to_display: String = text_to_display_chars.into_iter().collect();
-
-    let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 4.;
-    context.move_to(x_offset, y_offset);
-    context.show_text(&text_to_display)?;
-
-    context.set_font_size(120.0);
-    context.set_source_rgb(0., 0., 0.);
-    let text_to_display = &Local::now()
-        .format_localized("%e %B", Locale::fr_FR)
-        .to_string();
-    let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 2.;
-    context.move_to(x_offset, y_offset);
-    context.show_text(text_to_display)?;
-
-    context.set_font_size(120.0);
-    context.set_source_rgb(0., 0., 0.);
-    let text_to_display = &Local::now()
-        .format_localized("%R", Locale::fr_FR)
-        .to_string();
-
-    let text_extent = context.text_extents(&text_to_display)?;
-    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
-    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 3. / 4.;
-    context.move_to(x_offset, y_offset);
-    context.show_text(text_to_display)?;
+    if cpt % 2 == 1 {
+        afficher_jour(&contexte)?;
+    } else {
+        afficher_valeurs_capteurs(&contexte, luminosite_lux)?;
+    }
 
     let mut file = File::create("cairo_output.png").expect("Impossible de créer un fichier");
     surface
         .write_to_png(&mut file)
         .expect("Couldn’t write to png");
 
-    drop(context);
+    drop(contexte);
     let data = surface.data()?;
 
     if ecran.is_some() {
@@ -223,5 +193,68 @@ pub async fn afficher_image(
         log::info!("Afficher l'image");
         ecran.as_mut().unwrap().mettre_a_jour().await?;
     }
+    Ok(())
+}
+
+fn afficher_jour(contexte: &Context) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Afficher le jour courant");
+    contexte.select_font_face("serif", cairo::FontSlant::Normal, cairo::FontWeight::Normal);
+
+    contexte.set_font_size(120.0);
+    contexte.set_source_rgb(255., 0., 0.);
+    let text_to_display = &Local::now()
+        .format_localized("%A", Locale::fr_FR)
+        .to_string();
+    let mut text_to_display_chars: Vec<char> = text_to_display.chars().collect();
+    text_to_display_chars[0] = text_to_display_chars[0].to_uppercase().nth(0).unwrap();
+    let text_to_display: String = text_to_display_chars.into_iter().collect();
+
+    let text_extent = contexte.text_extents(&text_to_display)?;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 4.;
+    contexte.move_to(x_offset, y_offset);
+    contexte.show_text(&text_to_display)?;
+
+    contexte.set_font_size(120.0);
+    contexte.set_source_rgb(0., 0., 0.);
+    let text_to_display = &Local::now()
+        .format_localized("%e %B", Locale::fr_FR)
+        .to_string();
+    let text_extent = contexte.text_extents(&text_to_display)?;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 2.;
+    contexte.move_to(x_offset, y_offset);
+    contexte.show_text(text_to_display)?;
+
+    contexte.set_font_size(120.0);
+    contexte.set_source_rgb(0., 0., 0.);
+    let text_to_display = &Local::now()
+        .format_localized("%R", Locale::fr_FR)
+        .to_string();
+
+    let text_extent = contexte.text_extents(&text_to_display)?;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 3. / 4.;
+    contexte.move_to(x_offset, y_offset);
+    contexte.show_text(text_to_display)?;
+    Ok(())
+}
+
+fn afficher_valeurs_capteurs(
+    contexte: &Context,
+    luminosite_lux: String,
+) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Afficher le jour courant");
+    contexte.select_font_face("serif", cairo::FontSlant::Normal, cairo::FontWeight::Normal);
+
+    contexte.set_font_size(50.0);
+    contexte.set_source_rgb(0., 0., 0.);
+    let text_to_display = &luminosite_lux;
+
+    let text_extent = contexte.text_extents(&text_to_display)?;
+    let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
+    let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 1. / 4.;
+    contexte.move_to(x_offset, y_offset);
+    contexte.show_text(text_to_display)?;
     Ok(())
 }
