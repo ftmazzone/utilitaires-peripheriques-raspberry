@@ -167,7 +167,7 @@ pub async fn afficher_image(
     contexte.paint()?;
 
     if Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10. < 1.
-        || luminosite_lux == String::new()
+        || luminosite_lux.eq(&String::new())
     {
         afficher_jour(&contexte)?;
     } else {
