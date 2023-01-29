@@ -83,7 +83,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
-            
             // Mesurer la luminosité
             let luminosite_lux;
             if capteur_luminosite.is_some() {
@@ -98,8 +97,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 match capteur_luminosite.lire_luminosite_lux() {
                     Ok(valeur) => {
-                        luminosite_lux = valeur.to_string();
-                        println!("Luminosité mesurée {valeur} lux");
+                        luminosite_lux = format!("{:.2}", valeur);
                         log::info!("Luminosité mesurée {valeur} lux")
                     }
                     Err(err) => {
