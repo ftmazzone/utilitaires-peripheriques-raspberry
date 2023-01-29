@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match capteur_luminosite.as_mut().unwrap().lire_luminosite_lux() {
                 Ok(valeur) => {
                     luminosite_lux = valeur.to_string();
-                    log::info!("Luminosité lux {luminosite_lux}")
+                    log::error!("Luminosité lux {luminosite_lux}")
                 }
                 Err(err) => {
                     log::error!("Erreur lors de lecture de luminosité {err}");
