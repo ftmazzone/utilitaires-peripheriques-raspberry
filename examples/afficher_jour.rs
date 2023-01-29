@@ -202,41 +202,41 @@ fn afficher_jour(contexte: &Context) -> Result<(), Box<dyn std::error::Error>> {
 
     contexte.set_font_size(120.0);
     contexte.set_source_rgb(255., 0., 0.);
-    let text_to_display = &Local::now()
+    let texte_a_afficher = &Local::now()
         .format_localized("%A", Locale::fr_FR)
         .to_string();
-    let mut text_to_display_chars: Vec<char> = text_to_display.chars().collect();
-    text_to_display_chars[0] = text_to_display_chars[0].to_uppercase().nth(0).unwrap();
-    let text_to_display: String = text_to_display_chars.into_iter().collect();
+    let mut texte_a_afficher_characteres: Vec<char> = texte_a_afficher.chars().collect();
+    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0].to_uppercase().nth(0).unwrap();
+    let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
 
-    let text_extent = contexte.text_extents(&text_to_display)?;
+    let text_extent = contexte.text_extents(&texte_a_afficher)?;
     let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
     let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 4.;
     contexte.move_to(x_offset, y_offset);
-    contexte.show_text(&text_to_display)?;
+    contexte.show_text(&texte_a_afficher)?;
 
     contexte.set_font_size(120.0);
     contexte.set_source_rgb(0., 0., 0.);
-    let text_to_display = &Local::now()
+    let texte_a_afficher = &Local::now()
         .format_localized("%e %B", Locale::fr_FR)
         .to_string();
-    let text_extent = contexte.text_extents(&text_to_display)?;
+    let text_extent = contexte.text_extents(&texte_a_afficher)?;
     let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
     let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height()) / 2.;
     contexte.move_to(x_offset, y_offset);
-    contexte.show_text(text_to_display)?;
+    contexte.show_text(texte_a_afficher)?;
 
     contexte.set_font_size(120.0);
     contexte.set_source_rgb(0., 0., 0.);
-    let text_to_display = &Local::now()
+    let texte_a_afficher = &Local::now()
         .format_localized("%R", Locale::fr_FR)
         .to_string();
 
-    let text_extent = contexte.text_extents(&text_to_display)?;
+    let text_extent = contexte.text_extents(&texte_a_afficher)?;
     let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
     let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 3. / 4.;
     contexte.move_to(x_offset, y_offset);
-    contexte.show_text(text_to_display)?;
+    contexte.show_text(texte_a_afficher)?;
     Ok(())
 }
 
@@ -249,12 +249,12 @@ fn afficher_valeurs_capteurs(
 
     contexte.set_font_size(50.0);
     contexte.set_source_rgb(0., 0., 0.);
-    let text_to_display = &luminosite_lux;
+    let texte_a_afficher =format!("Luminosité: {luminosite_lux} lux");
 
-    let text_extent = contexte.text_extents(&text_to_display)?;
+    let text_extent = contexte.text_extents(&texte_a_afficher)?;
     let x_offset = (Wepd7In5BV2::largeur() as f64 - text_extent.width()) / 2.0;
     let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 1. / 4.;
     contexte.move_to(x_offset, y_offset);
-    contexte.show_text(text_to_display)?;
+    contexte.show_text(&texte_a_afficher)?;
     Ok(())
 }
