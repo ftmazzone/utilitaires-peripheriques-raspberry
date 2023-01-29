@@ -263,6 +263,5 @@ fn afficher_valeurs_capteurs(
     contexte.move_to(x_offset, y_offset);
     contexte.show_text(&texte_a_afficher)?;
 
-    println!("coucou {texte_a_afficher}");
     Ok(())
 }
