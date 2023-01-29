@@ -11,9 +11,7 @@ use std::{
 use cairo::{Context, Format, ImageSurface};
 use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
-use ecran::{
-    capteur_luminosite, detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2,
-};
+use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
 use tokio::time::timeout;
 
@@ -34,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialiser le capteur de luminosité
     let mut capteur_luminosite = match Veml7700::new() {
         Ok(mut capteur_luminosite) => match capteur_luminosite.initialiser() {
-            Ok(capteur_luminosite) => Some(capteur_luminosite),
+            Ok(_) => Some(capteur_luminosite),
             Err(err) => {
                 log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
                 None
@@ -81,6 +79,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let resultat = timeout(tokio::time::Duration::from_secs(10), rx.recv_async()).await;
 
+        // Mesurer la luminosité
+        let luminosite_lux;
+        if capteur_luminosite.is_some() {
+            match capteur_luminosite.as_mut().unwrap().lire_luminosite_lux() {
+                Ok(valeur) => {
+                    luminosite_lux = valeur.to_string();
+                    log::info!("Luminosité lux {luminosite_lux}")
+                }
+                Err(err) => {
+                    log::error!("Erreur lors de lecture de luminosité {err}");
+                    luminosite_lux = String::new();
+                }
+            }
+        } else {
+            luminosite_lux = String::new();
+        }
+        log::info!("Luminosité lux : {luminosite_lux}");
+
         // Affichager l'image toutes les cinq minutes
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
             afficher_image(&mut ecran).await?;
@@ -125,7 +141,7 @@ pub async fn afficher_image(
         Wepd7In5BV2::largeur() as i32,
         Wepd7In5BV2::hauteur() as i32,
     )
-    .expect("Couldn’t create surface");
+    .expect("Impossible d'initialiser la surface");
 
     let context = Context::new(&mut surface)?;
 
@@ -173,7 +189,7 @@ pub async fn afficher_image(
     context.move_to(x_offset, y_offset);
     context.show_text(text_to_display)?;
 
-    let mut file = File::create("cairo_output.png").expect("Couldn’t create file");
+    let mut file = File::create("cairo_output.png").expect("Impossible de créer un fichier");
     surface
         .write_to_png(&mut file)
         .expect("Couldn’t write to png");
