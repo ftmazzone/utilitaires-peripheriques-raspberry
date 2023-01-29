@@ -73,9 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if eclairage.as_mut().is_some() {
         eclairage.as_mut().unwrap().demarrer();
     }
-    afficher_image(&mut ecran, 0, String::new()).await?;
-
-    let mut cpt = 0;
+    afficher_image(&mut ecran, String::new()).await?;
 
     while operationnel.load(Ordering::SeqCst)
         && !rx.is_disconnected()
@@ -115,9 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
-            afficher_image(&mut ecran, cpt, luminosite_lux).await?;
-            cpt = (cpt + 1) % 2;
-            println!("test cpt {cpt}");
+            afficher_image(&mut ecran, luminosite_lux).await?;
         }
 
         match resultat {
@@ -152,7 +148,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn afficher_image(
     ecran: &mut Option<Wepd7In5BV2>,
-    cpt: u8,
     luminosite_lux: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Initialise cairo
@@ -168,7 +163,11 @@ pub async fn afficher_image(
     contexte.set_source_rgb(255.0, 255.0, 255.0);
     contexte.paint()?;
 
-    if cpt % 2 == 1 {
+    println!(
+        "{}",
+        Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10.
+    );
+    if Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10. < 1. {
         afficher_jour(&contexte)?;
     } else {
         afficher_valeurs_capteurs(&contexte, luminosite_lux)?;
