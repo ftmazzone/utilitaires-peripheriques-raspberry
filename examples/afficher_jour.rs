@@ -10,7 +10,7 @@ use std::{
 
 use cairo::{Context, Format, ImageSurface};
 use chrono::{Local, Locale, Timelike};
-use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
+use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2, capteur_luminosite};
 use rppal::spi::Bus;
 use tokio::time::timeout;
 use ecran::{capteur_luminosite::capteur::Veml7700};
@@ -35,6 +35,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
      match Veml7700::new(){
         Ok(mut capteur_luminosite)=>{
             capteur_luminosite.demarrer().unwrap();
+
+         let luminosite=   capteur_luminosite.lire_luminosite().unwrap();
+         let luminosite_blanche = capteur_luminosite.lire_luminosite_blanche().unwrap();
+
+         println!("Luminosité: {luminosite} Luminosité blanche {luminosite_blanche}");
         },
         Err(err)=>{
             log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");

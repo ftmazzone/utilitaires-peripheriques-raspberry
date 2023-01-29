@@ -5,7 +5,7 @@ pub enum AdresseCapteur {
 
 /// Commandes pour contrôler le capteur
 #[derive(Copy, Clone)]
-pub(crate) enum Instruction {
+pub enum Instruction {
     AlsConfig,
     Als,
     AlsWhite,
@@ -17,12 +17,23 @@ pub(crate) enum Instruction {
     AlsGain1_4,
 
     // Ambient light intergration time settings
-    Als25MS,
-    Als50MS,
-    Als100MS,
-    Als200MS,
-    Als400MS,
-    Als800MS,
+    AlsIt25MS,
+    AlsIt50MS,
+    AlsIt100MS,
+    AlsIt200MS,
+    AlsIt400MS,
+    AlsIt800MS,
+
+    // Persistence
+    AlsPers1,
+    AlsPers2,
+    AlsPers4,
+    AlsPers8,
+
+    AlsPowerSaveMode1,
+    AlsPowerSaveMode2,
+    AlsPowerSaveMode3,
+    AlsPowerSaveMode4
 }
 
 ///Gain value integers
@@ -57,7 +68,7 @@ impl AdresseCapteur {
 impl Instruction {
     pub(crate) fn adresse(self) -> u8 {
         match self {
-            Instruction::AlsConfig=>0x00,
+            Instruction::AlsConfig => 0x00,
             Instruction::Als => 0x04,
             Instruction::AlsWhite => 0x05,
 
@@ -66,12 +77,22 @@ impl Instruction {
             Instruction::AlsGain1_8 => 0x02,
             Instruction::AlsGain1_4 => 0x03,
 
-            Instruction::Als25MS => 0xC,
-            Instruction::Als50MS => 0x8,
-            Instruction::Als100MS => 0x0,
-            Instruction::Als200MS => 0x1,
-            Instruction::Als400MS => 0x2,
-            Instruction::Als800MS => 0x3,
+            Instruction::AlsIt25MS => 0x0C,
+            Instruction::AlsIt50MS => 0x08,
+            Instruction::AlsIt100MS => 0x00,
+            Instruction::AlsIt200MS => 0x01,
+            Instruction::AlsIt400MS => 0x02,
+            Instruction::AlsIt800MS => 0x03,
+
+            Instruction::AlsPers1 => 0x00,
+            Instruction::AlsPers2 => 0x01,
+            Instruction::AlsPers4 => 0x02,
+            Instruction::AlsPers8 => 0x03,
+
+            Instruction::AlsPowerSaveMode1 => 0x00,
+            Instruction::AlsPowerSaveMode2 => 0x01,
+            Instruction::AlsPowerSaveMode3 => 0x02,
+            Instruction::AlsPowerSaveMode4 => 0x03,
         }
     }
 }
