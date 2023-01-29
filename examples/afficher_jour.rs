@@ -94,6 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match capteur_luminosite.lire_luminosite_lux() {
                 Ok(valeur) => {
                     luminosite_lux = valeur.to_string();
+                    println!("Luminosité mesurée {valeur} lux");
                     log::info!("Luminosité mesurée {valeur} lux")
                 }
                 Err(err) => {
@@ -256,5 +257,7 @@ fn afficher_valeurs_capteurs(
     let y_offset = (Wepd7In5BV2::hauteur() as f64 + text_extent.height() + 120. / 4.) * 1. / 4.;
     contexte.move_to(x_offset, y_offset);
     contexte.show_text(&texte_a_afficher)?;
+
+    println!("coucou {texte_a_afficher}");
     Ok(())
 }
