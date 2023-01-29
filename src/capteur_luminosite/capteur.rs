@@ -75,6 +75,18 @@ impl Veml7700 {
         self.mode_economie_energie = mode_economie_energie;
     }
 
+    pub fn demarrer(&mut self) -> Result<(), rppal::i2c::Error> {
+        self.mode_economie_energie = ModeEconomieEnergie::AlsPowerSaveMode1;
+        self.configurer_capteur()?;
+        Ok(())
+    }
+
+    pub fn arrêter(&mut self) -> Result<(), rppal::i2c::Error> {
+        self.mode_economie_energie = ModeEconomieEnergie::AlsPowerSaveMode2;
+        self.configurer_capteur()?;
+        Ok(())
+    }
+
     pub fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
         let mut tampon = [0u8; 2];
         self.i2c.block_read(Registre::Als.adresse(), &mut tampon)?;

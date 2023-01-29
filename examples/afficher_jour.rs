@@ -82,7 +82,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Mesurer la luminosité
         let luminosite_lux;
         if capteur_luminosite.is_some() {
-            match capteur_luminosite.as_mut().unwrap().lire_luminosite_lux() {
+            let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
+
+            match capteur_luminosite.arrêter() {
+                Ok(_) => {}
+                Err(err) => log::error!("Erreur lors du démarrage du capteur de luminosité {err}"),
+            }
+
+            match capteur_luminosite.lire_luminosite_lux() {
                 Ok(valeur) => {
                     luminosite_lux = valeur.to_string();
                 }
@@ -90,6 +97,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     log::error!("Erreur lors de lecture de luminosité {err}");
                     luminosite_lux = String::new();
                 }
+            }
+
+            match capteur_luminosite.arrêter() {
+                Ok(_) => {}
+                Err(err) => log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}"),
             }
         } else {
             luminosite_lux = String::new();
