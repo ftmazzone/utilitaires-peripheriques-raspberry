@@ -1,15 +1,16 @@
 use rppal::i2c::I2c;
 
 use crate::capteur_luminosite::instruction::{AdresseCapteur, Instruction};
+use crate::capteur_luminosite::instruction::{Gain, IntegrationTime};
 
 pub struct Veml7700 {
     i2c: I2c,
     big_endian: bool,
-    gain: u8,
-    temps_integration: u8,
-    persistance: u8,
-    interruption_active: u8,
-    mode_economie_energie: u8,
+    gain: Instruction,
+    temps_integration: Instruction,
+    persistance: Instruction,
+    interruption_active: bool,
+    mode_economie_energie: Instruction,
 }
 
 impl Veml7700 {
@@ -17,11 +18,11 @@ impl Veml7700 {
         let mut vmel7700 = Self {
             i2c: I2c::new()?,
             big_endian: cfg!(target_endian = "big"),
-            gain: Instruction::AlsGain1.adresse(),
-            temps_integration: Instruction::AlsIt100MS.adresse(),
-            persistance: Instruction::AlsPers1.adresse(),
-            interruption_active: 0,
-            mode_economie_energie: Instruction::AlsPowerSaveMode1.adresse(),
+            gain: Instruction::AlsGain1,
+            temps_integration: Instruction::AlsIt100MS,
+            persistance: Instruction::AlsPers1,
+            interruption_active: false,
+            mode_economie_energie: Instruction::AlsPowerSaveMode1,
         };
 
         vmel7700
@@ -32,11 +33,11 @@ impl Veml7700 {
     }
 
     fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
-        let configuration = (self.gain as u16) << 11
-            | (self.temps_integration as u16) << 6
-            | (self.persistance as u16) << 4
+        let configuration = (self.gain.adresse() as u16) << 11
+            | (self.temps_integration.adresse() as u16) << 6
+            | (self.persistance.adresse() as u16) << 4
             | (self.interruption_active as u16) << 1
-            | (self.mode_economie_energie as u16) << 0;
+            | (self.mode_economie_energie.adresse() as u16) << 0;
 
         let configuration = match self.big_endian {
             true => configuration.to_be_bytes(),
@@ -51,26 +52,23 @@ impl Veml7700 {
         Ok(())
     }
 
-    pub fn configurer_gain(&mut self, gain: u8) {
+    pub fn configurer_gain(&mut self, gain: Instruction) {
         self.gain = gain;
     }
 
-    pub fn configurer_temps_integration(&mut self, temps_integration: u8) {
+    pub fn configurer_temps_integration(&mut self, temps_integration: Instruction) {
         self.temps_integration = temps_integration;
     }
 
-    pub fn configurer_persistance(&mut self, persistance: u8) {
+    pub fn configurer_persistance(&mut self, persistance: Instruction) {
         self.persistance = persistance;
     }
 
     pub fn configurer_interruption(&mut self, active: bool) {
-        match active {
-            false => self.interruption_active = 0x00,
-            true => self.interruption_active = 0x01,
-        }
+        self.interruption_active = active;
     }
 
-    pub fn configurer_mode_economie_energie(&mut self, mode_economie_energie: u8) {
+    pub fn configurer_mode_economie_energie(&mut self, mode_economie_energie: Instruction) {
         self.mode_economie_energie = mode_economie_energie;
     }
 
@@ -94,13 +92,24 @@ impl Veml7700 {
         }
     }
 
-    // pub fn lire_lux(&mut self)->Result<u16,rppal::i2c::Error>{
-    //     let factor = get_lux_raw_conversion_factor(it, gain);
-    //     let lux = f32::from(raw_als) * f32::from(factor);
-    //     if (gain == Gain::OneQuarter || gain == Gain::OneEighth) && lux > 1000.0 {
-    //         correct_high_lux(lux) as f32
-    //     } else {
-    //         lux as f32
-    //     }
-    // }
+    pub fn resolution(&mut self) -> f64 {
+        let resolution_at_max = 0.0036;
+        let gain_max: f64 = 2.;
+        let integration_time_max = 800.;
+
+        if Gain::valeur(self.gain) == gain_max
+            && IntegrationTime::valeur(self.temps_integration) == integration_time_max
+        {
+            return resolution_at_max;
+        }
+        return resolution_at_max
+            * (integration_time_max / IntegrationTime::valeur(self.temps_integration)) as f64
+            * (gain_max / Gain::valeur(self.gain)) as f64;
+    }
+
+    pub fn lire_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
+        let resolution = self.resolution();
+        let luminosite = self.lire_luminosite()? as f64;
+        Ok(resolution * luminosite)
+    }
 }

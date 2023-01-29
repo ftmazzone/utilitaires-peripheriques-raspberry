@@ -33,27 +33,7 @@ pub enum Instruction {
     AlsPowerSaveMode1,
     AlsPowerSaveMode2,
     AlsPowerSaveMode3,
-    AlsPowerSaveMode4
-}
-
-///Gain value integers
-#[derive(Copy, Clone)]
-pub(crate) enum GainValues {
-    AlsGain1,
-    AlsGain2,
-    AlsGain1_4,
-    AlsGain1_8,
-}
-
-///Integration time value integers
-#[derive(Copy, Clone)]
-pub(crate) enum IntegrationTimeValues {
-    Als25MS,
-    Als50MS,
-    Als100MS,
-    Als200MS,
-    Als400MS,
-    Als800MS,
+    AlsPowerSaveMode4,
 }
 
 impl AdresseCapteur {
@@ -72,7 +52,7 @@ impl Instruction {
             Instruction::Als => 0x04,
             Instruction::AlsWhite => 0x05,
 
-            Instruction::AlsGain1 => 0x0,
+            Instruction::AlsGain1 => 0x00,
             Instruction::AlsGain2 => 0x01,
             Instruction::AlsGain1_8 => 0x02,
             Instruction::AlsGain1_4 => 0x03,
@@ -97,26 +77,32 @@ impl Instruction {
     }
 }
 
-impl GainValues {
-    pub(crate) fn adresse(self) -> f32 {
-        match self {
-            GainValues::AlsGain1 => 1.,
-            GainValues::AlsGain2 => 2.,
-            GainValues::AlsGain1_4 => 0.25,
-            GainValues::AlsGain1_8 => 0.125,
+pub(crate) struct IntegrationTime {}
+
+impl IntegrationTime {
+    pub(crate) fn valeur(instruction: Instruction) -> f64 {
+        match instruction {
+            Instruction::AlsIt25MS => 25.,
+            Instruction::AlsIt50MS => 50.,
+            Instruction::AlsIt100MS => 100.,
+            Instruction::AlsIt200MS => 200.,
+            Instruction::AlsIt400MS => 400.,
+            Instruction::AlsIt800MS => 800.,
+            _ => 0.,
         }
     }
 }
 
-impl IntegrationTimeValues {
-    pub(crate) fn adresse(self) -> u16 {
-        match self {
-            IntegrationTimeValues::Als25MS => 25,
-            IntegrationTimeValues::Als50MS => 50,
-            IntegrationTimeValues::Als100MS => 100,
-            IntegrationTimeValues::Als200MS => 200,
-            IntegrationTimeValues::Als400MS => 400,
-            IntegrationTimeValues::Als800MS => 800,
+pub(crate) struct Gain {}
+
+impl Gain {
+    pub(crate) fn valeur(instruction: Instruction) -> f64 {
+        match instruction {
+            Instruction::AlsGain1 => 1.,
+            Instruction::AlsGain2 => 2.,
+            Instruction::AlsGain1_4 => 0.25,
+            Instruction::AlsGain1_8 => 0.125,
+            _ => 0.,
         }
     }
 }
