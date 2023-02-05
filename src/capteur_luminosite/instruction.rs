@@ -74,8 +74,8 @@ impl Gain {
         }
     }
 
-    pub(crate) fn valeur(instruction: Gain) -> f64 {
-        match instruction {
+    pub(crate) fn valeur(self) -> f64 {
+        match self {
             Gain::AlsGain1 => 1.,
             Gain::AlsGain2 => 2.,
             Gain::AlsGain1_4 => 0.25,

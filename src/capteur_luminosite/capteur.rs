@@ -147,22 +147,32 @@ impl Veml7700 {
 
     pub fn resolution(&mut self) -> f64 {
         let resolution_at_max = 0.0036;
-        let gain_max: f64 = 2.;
-        let integration_time_max = 800.;
+        let gain_max: f64 = Gain::AlsGain2.valeur();
+        let integration_time_max = TempsIntegration::AlsIt800MS.valeur();
 
-        if Gain::valeur(self.gain) == gain_max
-            && TempsIntegration::valeur(self.temps_integration) == integration_time_max
-        {
-            return resolution_at_max;
-        }
         return resolution_at_max
-            * (integration_time_max / TempsIntegration::valeur(self.temps_integration)) as f64
-            * (gain_max / Gain::valeur(self.gain)) as f64;
+            * (integration_time_max / self.temps_integration.valeur())
+            * (gain_max / self.gain.valeur());
     }
 
-    pub async fn lire_luminosite_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
+    pub async fn lire_luminosite_lux(
+        &mut self,
+        correction: bool,
+    ) -> Result<f64, rppal::i2c::Error> {
         let resolution = self.resolution();
         let luminosite = self.lire_luminosite().await? as f64;
-        Ok(resolution * luminosite)
+        let lux_non_corrige = resolution * luminosite;
+
+        match correction {
+            true => {
+                let lux_corrige = (((6.0135e-13 * lux_non_corrige - 9.3924e-9) * lux_non_corrige
+                    + 8.1488e-5)
+                    * lux_non_corrige
+                    + 1.0023)
+                    * lux_non_corrige;
+                Ok(lux_corrige)
+            }
+            false => Ok(lux_non_corrige),
+        }
     }
 }
