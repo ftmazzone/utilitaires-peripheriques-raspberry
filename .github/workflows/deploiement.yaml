@@ -41,8 +41,6 @@ jobs:
           rustup --version
           cargo --version
           cargo build --release --example afficher_jour
-      - name: test
-        run: ls -la
       - uses: actions/upload-artifact@v3
         with:
           name: lire-ejp
