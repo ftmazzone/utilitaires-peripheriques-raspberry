@@ -16,12 +16,6 @@ jobs:
   construire:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    container:
-      image: clux/muslrust:stable
-      env:
-        CARGO_HOME: ${{ env.CARGO_HOME }}
-      volumes:
-      - $CARGO_HOME
     steps:
       - uses: actions/checkout@v3
       - name: Installation des dépendances requises
