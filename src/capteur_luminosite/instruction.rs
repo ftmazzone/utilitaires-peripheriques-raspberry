@@ -11,7 +11,7 @@ pub enum Registre {
     AlsWhite,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum Gain {
     AlsGain1,
     AlsGain2,
@@ -19,7 +19,7 @@ pub enum Gain {
     AlsGain1_4,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum TempsIntegration {
     AlsIt25MS,
     AlsIt50MS,
@@ -46,7 +46,7 @@ pub enum ModeEconomieEnergie {
 }
 
 impl AdresseCapteur {
-    pub fn adresse(self) -> u16 {
+    pub fn adresse(&self) -> u16 {
         match self {
             AdresseCapteur::I2cAddress => 0x10,
             AdresseCapteur::Vmel7700DefaultI2cAddress => 0x10,
@@ -55,7 +55,7 @@ impl AdresseCapteur {
 }
 
 impl Registre {
-    pub(crate) fn adresse(self) -> u8 {
+    pub(crate) fn adresse(&self) -> u8 {
         match self {
             Registre::AlsConfig => 0x00,
             Registre::Als => 0x04,
@@ -65,7 +65,7 @@ impl Registre {
 }
 
 impl Gain {
-    pub(crate) fn adresse(self) -> u8 {
+    pub(crate) fn adresse(&self) -> u8 {
         match self {
             Gain::AlsGain1 => 0x00,
             Gain::AlsGain2 => 0x01,
@@ -74,7 +74,7 @@ impl Gain {
         }
     }
 
-    pub(crate) fn valeur(self) -> f64 {
+    pub(crate) fn valeur(&self) -> f64 {
         match self {
             Gain::AlsGain1 => 1.,
             Gain::AlsGain2 => 2.,
@@ -82,10 +82,19 @@ impl Gain {
             Gain::AlsGain1_8 => 0.125,
         }
     }
+
+    pub(crate) fn suivant(&self) -> Self {
+        match &self {
+            Gain::AlsGain1 => Gain::AlsGain2,
+            Gain::AlsGain2 => Gain::AlsGain2,
+            Gain::AlsGain1_8 => Gain::AlsGain1_4,
+            Gain::AlsGain1_4 => Gain::AlsGain1,
+        }
+    }
 }
 
 impl TempsIntegration {
-    pub(crate) fn adresse(self) -> u8 {
+    pub(crate) fn adresse(&self) -> u8 {
         match self {
             TempsIntegration::AlsIt25MS => 0x0C,
             TempsIntegration::AlsIt50MS => 0x08,
@@ -96,7 +105,7 @@ impl TempsIntegration {
         }
     }
 
-    pub(crate) fn valeur(self) -> f64 {
+    pub(crate) fn valeur(&self) -> f64 {
         match self {
             TempsIntegration::AlsIt25MS => 25.,
             TempsIntegration::AlsIt50MS => 50.,
@@ -106,10 +115,32 @@ impl TempsIntegration {
             TempsIntegration::AlsIt800MS => 800.,
         }
     }
+
+    pub(crate) fn precedent(&self) -> Self {
+        match self {
+            TempsIntegration::AlsIt25MS => TempsIntegration::AlsIt25MS,
+            TempsIntegration::AlsIt50MS => TempsIntegration::AlsIt25MS,
+            TempsIntegration::AlsIt100MS => TempsIntegration::AlsIt50MS,
+            TempsIntegration::AlsIt200MS => TempsIntegration::AlsIt100MS,
+            TempsIntegration::AlsIt400MS => TempsIntegration::AlsIt200MS,
+            TempsIntegration::AlsIt800MS => TempsIntegration::AlsIt400MS,
+        }
+    }
+
+    pub(crate) fn suivant(&self) -> Self {
+        match self {
+            TempsIntegration::AlsIt25MS => TempsIntegration::AlsIt50MS,
+            TempsIntegration::AlsIt50MS => TempsIntegration::AlsIt100MS,
+            TempsIntegration::AlsIt100MS => TempsIntegration::AlsIt200MS,
+            TempsIntegration::AlsIt200MS => TempsIntegration::AlsIt400MS,
+            TempsIntegration::AlsIt400MS => TempsIntegration::AlsIt800MS,
+            TempsIntegration::AlsIt800MS => TempsIntegration::AlsIt800MS,
+        }
+    }
 }
 
 impl Persistance {
-    pub(crate) fn adresse(self) -> u8 {
+    pub(crate) fn adresse(&self) -> u8 {
         match self {
             Persistance::AlsPers1 => 0x00,
             Persistance::AlsPers2 => 0x01,
@@ -120,7 +151,7 @@ impl Persistance {
 }
 
 impl ModeEconomieEnergie {
-    pub(crate) fn adresse(self) -> u8 {
+    pub(crate) fn adresse(&self) -> u8 {
         match self {
             ModeEconomieEnergie::AlsPowerSaveMode1 => 0x00,
             ModeEconomieEnergie::AlsPowerSaveMode2 => 0x01,

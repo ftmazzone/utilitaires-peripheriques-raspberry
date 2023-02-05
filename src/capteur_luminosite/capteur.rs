@@ -18,6 +18,7 @@ pub struct Veml7700 {
     interruption_active: bool,
     mode_economie_energie: ModeEconomieEnergie,
     derniere_lecture_donnees: SystemTime,
+    correction_non_lineaire_resolution: bool,
 }
 
 impl Veml7700 {
@@ -31,6 +32,7 @@ impl Veml7700 {
             interruption_active: false,
             mode_economie_energie: ModeEconomieEnergie::AlsPowerSaveMode1,
             derniere_lecture_donnees: SystemTime::now(),
+            correction_non_lineaire_resolution: false,
         };
 
         vmel7700
@@ -92,7 +94,7 @@ impl Veml7700 {
         Ok(())
     }
 
-    pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
+    pub async fn attendre_avant_prochaine_lecture(&mut self) {
         let temps_ecoule_derniere_lecture_donnees = self
             .derniere_lecture_donnees
             .elapsed()
@@ -108,6 +110,10 @@ impl Veml7700 {
             ))
             .await;
         }
+    }
+
+    pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
+        self.attendre_avant_prochaine_lecture().await;
         self.derniere_lecture_donnees = SystemTime::now();
 
         let mut tampon = [0u8; 2];
@@ -119,21 +125,7 @@ impl Veml7700 {
     }
 
     pub async fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
-        let temps_ecoule_derniere_lecture_donnees = self
-            .derniere_lecture_donnees
-            .elapsed()
-            .unwrap_or_default()
-            .as_millis() as f64;
-
-        let delai_avant_prochaine_lecture_donnees =
-            2. * self.temps_integration.valeur() - temps_ecoule_derniere_lecture_donnees;
-
-        if delai_avant_prochaine_lecture_donnees > 0. {
-            time::sleep(time::Duration::from_millis(
-                delai_avant_prochaine_lecture_donnees as u64,
-            ))
-            .await;
-        }
+        self.attendre_avant_prochaine_lecture().await;
         self.derniere_lecture_donnees = SystemTime::now();
 
         let mut tampon = [0u8; 2];
@@ -155,15 +147,16 @@ impl Veml7700 {
             * (gain_max / self.gain.valeur());
     }
 
-    pub async fn lire_luminosite_lux(
-        &mut self,
-        correction: bool,
-    ) -> Result<f64, rppal::i2c::Error> {
+    pub fn activer_correction_non_lineaire_resolution(&mut self, active: bool) {
+        self.correction_non_lineaire_resolution = active;
+    }
+
+    pub async fn lire_luminosite_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
         let resolution = self.resolution();
         let luminosite = self.lire_luminosite().await? as f64;
         let lux_non_corrige = resolution * luminosite;
 
-        match correction {
+        match self.correction_non_lineaire_resolution {
             true => {
                 let lux_corrige = (((6.0135e-13 * lux_non_corrige - 9.3924e-9) * lux_non_corrige
                     + 8.1488e-5)
@@ -174,5 +167,36 @@ impl Veml7700 {
             }
             false => Ok(lux_non_corrige),
         }
+    }
+
+    pub async fn configurer_automatiquement(&mut self) -> Result<(), rppal::i2c::Error> {
+        self.configurer_gain(Gain::AlsGain1_8);
+        self.configurer_temps_integration(TempsIntegration::AlsIt100MS);
+        self.correction_non_lineaire_resolution = false;
+
+        let mut luminosite = self.lire_luminosite().await?;
+        if luminosite < 100 {
+            while luminosite <= 100
+                && !(self.gain == Gain::AlsGain2
+                    && self.temps_integration == TempsIntegration::AlsIt800MS)
+            {
+                if self.gain != Gain::AlsGain2 {
+                    self.gain = self.gain.suivant();
+                } else {
+                    if self.temps_integration != TempsIntegration::AlsIt800MS {
+                        self.temps_integration = self.temps_integration.suivant();
+                    }
+                }
+                luminosite = self.lire_luminosite().await?;
+            }
+        } else {
+            self.correction_non_lineaire_resolution = true;
+            while luminosite > 10000 && self.temps_integration != TempsIntegration::AlsIt25MS {
+                self.temps_integration = self.temps_integration.precedent();
+                luminosite = self.lire_luminosite().await?;
+            }
+        }
+
+        Ok(())
     }
 }

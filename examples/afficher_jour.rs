@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
 
-                match capteur_luminosite.lire_luminosite_lux(true).await {
+                match capteur_luminosite.lire_luminosite_lux().await {
                     Ok(valeur) => {
                         luminosite_lux = format!("{:.2}", valeur);
                         log::info!("Luminosité mesurée {valeur} lux")
