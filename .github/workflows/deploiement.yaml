@@ -1,4 +1,4 @@
-name: Construction du programme lire-ejp
+name: Construction de l'exemple Gestion-Ecran-Eink
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
           cargo build --release --example afficher_jour
       - uses: actions/upload-artifact@v3
         with:
-          name: lire-ejp
+          name: gestion_ecran_eink_exemple
           path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error

@@ -1,3 +1,7 @@
+#Gestion-Ecran-Eink
+
+[![Construction du programme lire-ejp](https://github.com/ftmazzone/gestion-ecran-eink/actions/workflows/deploiement.yaml/badge.svg)](https://github.com/ftmazzone/gestion-ecran-eink/actions/workflows/deploiement.yaml)
+
 # Installation
 
 Voir [canvas](https://github.com/Automattic/node-canvas).
