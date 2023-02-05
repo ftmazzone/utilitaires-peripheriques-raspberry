@@ -96,8 +96,8 @@ impl TempsIntegration {
         }
     }
 
-    pub(crate) fn valeur(instruction: TempsIntegration) -> f64 {
-        match instruction {
+    pub(crate) fn valeur(self) -> f64 {
+        match self {
             TempsIntegration::AlsIt25MS => 25.,
             TempsIntegration::AlsIt50MS => 50.,
             TempsIntegration::AlsIt100MS => 100.,

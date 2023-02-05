@@ -1,4 +1,7 @@
+use std::time::SystemTime;
+
 use rppal::i2c::I2c;
+use tokio::time;
 
 use crate::capteur_luminosite::instruction::{
     AdresseCapteur, Gain, ModeEconomieEnergie, Persistance, Registre,
@@ -14,6 +17,7 @@ pub struct Veml7700 {
     persistance: Persistance,
     interruption_active: bool,
     mode_economie_energie: ModeEconomieEnergie,
+    derniere_lecture_donnees: SystemTime,
 }
 
 impl Veml7700 {
@@ -26,6 +30,7 @@ impl Veml7700 {
             persistance: Persistance::AlsPers1,
             interruption_active: false,
             mode_economie_energie: ModeEconomieEnergie::AlsPowerSaveMode1,
+            derniere_lecture_donnees: SystemTime::now(),
         };
 
         vmel7700
@@ -87,7 +92,24 @@ impl Veml7700 {
         Ok(())
     }
 
-    pub fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
+    pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
+        let temps_ecoule_derniere_lecture_donnees = self
+            .derniere_lecture_donnees
+            .elapsed()
+            .unwrap_or_default()
+            .as_millis() as f64;
+
+        let delai_avant_prochaine_lecture_donnees =
+            2. * self.temps_integration.valeur() - temps_ecoule_derniere_lecture_donnees;
+
+        if delai_avant_prochaine_lecture_donnees > 0. {
+            time::sleep(time::Duration::from_millis(
+                delai_avant_prochaine_lecture_donnees as u64,
+            ))
+            .await;
+        }
+        self.derniere_lecture_donnees = SystemTime::now();
+
         let mut tampon = [0u8; 2];
         self.i2c.block_read(Registre::Als.adresse(), &mut tampon)?;
         match self.big_endian {
@@ -96,7 +118,24 @@ impl Veml7700 {
         }
     }
 
-    pub fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
+    pub async fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
+        let temps_ecoule_derniere_lecture_donnees = self
+            .derniere_lecture_donnees
+            .elapsed()
+            .unwrap_or_default()
+            .as_millis() as f64;
+
+        let delai_avant_prochaine_lecture_donnees =
+            2. * self.temps_integration.valeur() - temps_ecoule_derniere_lecture_donnees;
+
+        if delai_avant_prochaine_lecture_donnees > 0. {
+            time::sleep(time::Duration::from_millis(
+                delai_avant_prochaine_lecture_donnees as u64,
+            ))
+            .await;
+        }
+        self.derniere_lecture_donnees = SystemTime::now();
+
         let mut tampon = [0u8; 2];
         self.i2c
             .block_read(Registre::AlsWhite.adresse(), &mut tampon)?;
@@ -121,9 +160,9 @@ impl Veml7700 {
             * (gain_max / Gain::valeur(self.gain)) as f64;
     }
 
-    pub fn lire_luminosite_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
+    pub async fn lire_luminosite_lux(&mut self) -> Result<f64, rppal::i2c::Error> {
         let resolution = self.resolution();
-        let luminosite = self.lire_luminosite()? as f64;
+        let luminosite = self.lire_luminosite().await? as f64;
         Ok(resolution * luminosite)
     }
 }
