@@ -18,8 +18,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - name: test
-        run: ls -la
       - name: Installation des dépendances requises
         run: sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
@@ -43,6 +41,8 @@ jobs:
           rustup --version
           cargo --version
           cargo build --release
+      - name: test
+        run: ls -la
       - uses: actions/upload-artifact@v3
         with:
           name: lire-ejp
