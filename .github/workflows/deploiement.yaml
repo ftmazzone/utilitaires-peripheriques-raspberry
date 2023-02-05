@@ -46,6 +46,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: lire-ejp
-          path: ./target/x86_64-unknown-linux-musl/release/examples/afficher_jour
+          path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error
