@@ -61,6 +61,7 @@ impl Veml7700 {
         self.i2c
             .block_write(Registre::AlsConfig as u8, &configuration)?;
         self.configuration_modifiee = false;
+        self.derniere_lecture_donnees = SystemTime::now();
         Ok(())
     }
 
