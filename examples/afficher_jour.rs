@@ -1,6 +1,7 @@
 // Tester cargo run --example tester_ecran
 
 use std::{
+    env,
     fs::File,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -13,12 +14,13 @@ use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
-use tokio::time::sleep;
 use tokio::time::timeout;
-use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
     env_logger::init();
     log::info!("Démarrer");
 
@@ -33,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialiser le capteur de luminosité
     let mut capteur_luminosite = match Veml7700::new() {
-        Ok(mut capteur_luminosite) => match capteur_luminosite.initialiser() {
+        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur() {
             Ok(_) => Some(capteur_luminosite),
             Err(err) => {
                 log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
@@ -73,7 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if eclairage.as_mut().is_some() {
         eclairage.as_mut().unwrap().demarrer();
     }
-    afficher_image(&mut ecran, String::new()).await?;
 
     while operationnel.load(Ordering::SeqCst)
         && !rx.is_disconnected()
@@ -83,39 +84,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
-            // Mesurer la luminosité
-            let luminosite_lux;
-            if capteur_luminosite.is_some() {
-                let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
-
-                match capteur_luminosite.demarrer() {
-                    Ok(_) => sleep(Duration::from_secs(1)).await,
-                    Err(err) => {
-                        log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
-                    }
-                }
-
-                match capteur_luminosite.lire_luminosite_lux() {
-                    Ok(valeur) => {
-                        luminosite_lux = format!("{:.2}", valeur);
-                        log::info!("Luminosité mesurée {valeur} lux")
-                    }
-                    Err(err) => {
-                        log::error!("Erreur lors de lecture de luminosité {err}");
-                        luminosite_lux = String::new();
-                    }
-                }
-
-                match capteur_luminosite.arrêter() {
-                    Ok(_) => {}
-                    Err(err) => {
-                        log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")
-                    }
-                }
-            } else {
-                luminosite_lux = String::new();
-            }
-
+            let luminosite_lux = format!(
+                "{:.2}",
+                lire_luminosite(&mut capteur_luminosite)
+                    .await
+                    .unwrap_or_default()
+            );
             afficher_image(&mut ecran, luminosite_lux).await?;
         }
 
@@ -265,4 +239,67 @@ fn afficher_valeurs_capteurs(
     contexte.show_text(&texte_a_afficher)?;
 
     Ok(())
+}
+
+async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
+    // Mesurer la luminosité
+    let luminosite_lux;
+    if capteur_luminosite.is_some() {
+        let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
+
+        match capteur_luminosite.demarrer() {
+            Ok(_) => {}
+            Err(err) => {
+                log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
+            }
+        }
+
+        match capteur_luminosite.lire_luminosite_lux().await {
+            Ok(valeur) => {
+                log::info!("Luminosité mesurée avant configuration automatique {valeur} lux")
+            }
+            Err(err) => {
+                log::error!(
+                    "Erreur lors de lecture de luminosité avant configuration automatique {err}"
+                );
+            }
+        }
+
+        log::info!(
+            "Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",
+            capteur_luminosite.gain(),
+            capteur_luminosite.temps_integration()
+        );
+        match capteur_luminosite.configurer_automatiquement().await {
+            Ok(_) => log::info!(
+                "Configuration : {:?} temps intégration : {:?}",
+                capteur_luminosite.gain(),
+                capteur_luminosite.temps_integration()
+            ),
+            Err(err) => log::error!(
+                "Erreur lors de la configuration automatique du capteur de luminosité {err}"
+            ),
+        }
+
+        match capteur_luminosite.lire_luminosite_lux().await {
+            Ok(valeur) => {
+                luminosite_lux = Some(valeur);
+                log::info!("Luminosité mesurée {valeur} lux")
+            }
+            Err(err) => {
+                log::error!("Erreur lors de lecture de luminosité {err}");
+                luminosite_lux = None;
+            }
+        }
+
+        match capteur_luminosite.arrêter() {
+            Ok(_) => {}
+            Err(err) => {
+                log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")
+            }
+        }
+    } else {
+        luminosite_lux = None;
+    }
+    luminosite_lux
 }
