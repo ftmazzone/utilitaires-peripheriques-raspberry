@@ -14,9 +14,7 @@ use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
-use tokio::time::sleep;
 use tokio::time::timeout;
-use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -93,7 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
 
                 match capteur_luminosite.demarrer() {
-                    Ok(_) => sleep(Duration::from_secs(1)).await,
+                    Ok(_) => {},
                     Err(err) => {
                         log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
                     }

@@ -66,7 +66,7 @@ impl Veml7700 {
         self.gain = gain;
     }
 
-    pub fn gain(&self)->Gain{
+    pub fn gain(&self) -> Gain {
         self.gain
     }
 
@@ -74,7 +74,7 @@ impl Veml7700 {
         self.temps_integration = temps_integration;
     }
 
-    pub fn temps_integration(&self)->TempsIntegration{
+    pub fn temps_integration(&self) -> TempsIntegration {
         self.temps_integration
     }
 
@@ -111,6 +111,12 @@ impl Veml7700 {
 
         let delai_avant_prochaine_lecture_donnees =
             2. * self.temps_integration.valeur() - temps_ecoule_derniere_lecture_donnees;
+
+        println!(
+            "délai {} {} {delai_avant_prochaine_lecture_donnees}",
+            self.temps_integration.valeur(),
+            temps_ecoule_derniere_lecture_donnees
+        );
 
         if delai_avant_prochaine_lecture_donnees > 0. {
             time::sleep(time::Duration::from_millis(
