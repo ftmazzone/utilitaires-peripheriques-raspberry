@@ -97,6 +97,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 match capteur_luminosite.lire_luminosite_lux().await {
                     Ok(valeur) => {
+                        log::info!("Luminosité mesurée avant correction automatique {valeur} lux")
+                    }
+                    Err(err) => {
+                        log::error!("Erreur lors de lecture de luminosité avant correction automatique {err}");
+                    }
+                }
+
+                match   capteur_luminosite.configurer_automatiquement().await{
+                Ok(_)=>{},
+                Err(err)=>log::error!("Erreur lors de la configuration automatique du capteur de luminosité {err}")
+                }
+
+                match capteur_luminosite.lire_luminosite_lux().await {
+                    Ok(valeur) => {
                         luminosite_lux = format!("{:.2}", valeur);
                         log::info!("Luminosité mesurée {valeur} lux")
                     }
