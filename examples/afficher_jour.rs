@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialiser le capteur de luminosité
     let mut capteur_luminosite = match Veml7700::new() {
-        Ok(mut capteur_luminosite) => match capteur_luminosite.initialiser() {
+        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur() {
             Ok(_) => Some(capteur_luminosite),
             Err(err) => {
                 log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
@@ -75,7 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if eclairage.as_mut().is_some() {
         eclairage.as_mut().unwrap().demarrer();
     }
-    afficher_image(&mut ecran, String::new()).await?;
 
     while operationnel.load(Ordering::SeqCst)
         && !rx.is_disconnected()

@@ -11,7 +11,7 @@ pub enum Registre {
     AlsWhite,
 }
 
-#[derive(Copy, Clone, PartialEq,Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Gain {
     AlsGain1,
     AlsGain2,
@@ -19,7 +19,7 @@ pub enum Gain {
     AlsGain1_4,
 }
 
-#[derive(Copy, Clone, PartialEq,Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum TempsIntegration {
     AlsIt25MS,
     AlsIt50MS,
@@ -29,7 +29,7 @@ pub enum TempsIntegration {
     AlsIt800MS,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Persistance {
     AlsPers1,
     AlsPers2,
@@ -37,7 +37,7 @@ pub enum Persistance {
     AlsPers8,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ModeEconomieEnergie {
     AlsPowerSaveMode1,
     AlsPowerSaveMode2,
@@ -91,7 +91,6 @@ impl Gain {
             Gain::AlsGain1_4 => Gain::AlsGain1,
         }
     }
-    
 }
 
 impl TempsIntegration {
