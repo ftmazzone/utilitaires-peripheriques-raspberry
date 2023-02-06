@@ -203,10 +203,10 @@ impl Veml7700 {
                     && self.temps_integration == TempsIntegration::AlsIt800MS)
             {
                 if self.gain != Gain::AlsGain2 {
-                    self.gain = self.gain.suivant();
+                    self.configurer_gain(self.gain.suivant());
                 } else {
                     if self.temps_integration != TempsIntegration::AlsIt800MS {
-                        self.temps_integration = self.temps_integration.suivant();
+                        self.configurer_temps_integration(self.temps_integration.suivant());
                     }
                 }
                 luminosite = self.lire_luminosite().await?;
@@ -214,7 +214,7 @@ impl Veml7700 {
         } else {
             self.correction_non_lineaire_resolution = true;
             while luminosite > 10000 && self.temps_integration != TempsIntegration::AlsIt25MS {
-                self.temps_integration = self.temps_integration.precedent();
+                self.configurer_temps_integration(self.temps_integration.precedent());
                 luminosite = self.lire_luminosite().await?;
             }
         }
