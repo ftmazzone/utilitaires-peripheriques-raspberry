@@ -110,11 +110,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
 
-                let gain = capteur_luminosite.gain();
-                let temps_integration = capteur_luminosite.temps_integration();
-                log::info!("Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",gain,temps_integration);
+                log::info!("Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",capteur_luminosite.gain(),capteur_luminosite.temps_integration());
                 match   capteur_luminosite.configurer_automatiquement().await{
-                Ok(_)=>  log::info!("Configuration : {:?} temps intégration : {:?}",gain,temps_integration),
+                Ok(_)=>  log::info!("Configuration : {:?} temps intégration : {:?}",capteur_luminosite.gain(),capteur_luminosite.temps_integration()),
                 Err(err)=>log::error!("Erreur lors de la configuration automatique du capteur de luminosité {err}")
                 }
 
