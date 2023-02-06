@@ -189,11 +189,13 @@ impl Veml7700 {
         self.correction_non_lineaire_resolution = false;
 
         let mut luminosite = self.lire_luminosite().await?;
+        println!("Luminosité 1 {luminosite}");
         if luminosite < 100 {
             while luminosite <= 100
                 && !(self.gain == Gain::AlsGain2
                     && self.temps_integration == TempsIntegration::AlsIt800MS)
             {
+                println!("Luminosité 2 {luminosite}");
                 if self.gain != Gain::AlsGain2 {
                     self.gain = self.gain.suivant();
                 } else {
@@ -204,6 +206,7 @@ impl Veml7700 {
                 luminosite = self.lire_luminosite().await?;
             }
         } else {
+            println!("Luminosité 3 {luminosite}");
             self.correction_non_lineaire_resolution = true;
             while luminosite > 10000 && self.temps_integration != TempsIntegration::AlsIt25MS {
                 self.temps_integration = self.temps_integration.precedent();
