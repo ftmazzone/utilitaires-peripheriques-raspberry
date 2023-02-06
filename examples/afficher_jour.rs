@@ -82,12 +82,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         && Local::now() - heure_demarrage < chrono::Duration::minutes(30)
     {
         let resultat = timeout(tokio::time::Duration::from_secs(10), rx.recv_async()).await;
-        
+
         lire_luminosite(&mut capteur_luminosite).await;
 
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
-            let luminosite_lux = lire_luminosite(&mut capteur_luminosite).await;
+            let luminosite_lux = format!(
+                "{:.2}",
+                lire_luminosite(&mut capteur_luminosite)
+                    .await
+                    .unwrap_or_default()
+            );
             afficher_image(&mut ecran, luminosite_lux).await?;
         }
 
@@ -239,7 +244,7 @@ fn afficher_valeurs_capteurs(
     Ok(())
 }
 
-async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> String {
+async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
     // Mesurer la luminosité
     let luminosite_lux;
     if capteur_luminosite.is_some() {
@@ -281,12 +286,12 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> String {
 
         match capteur_luminosite.lire_luminosite_lux().await {
             Ok(valeur) => {
-                luminosite_lux = format!("{:.2}", valeur);
+                luminosite_lux = Some(valeur);
                 log::info!("Luminosité mesurée {valeur} lux")
             }
             Err(err) => {
                 log::error!("Erreur lors de lecture de luminosité {err}");
-                luminosite_lux = String::new();
+                luminosite_lux = None;
             }
         }
 
@@ -297,7 +302,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> String {
             }
         }
     } else {
-        luminosite_lux = String::new();
+        luminosite_lux = None;
     }
     luminosite_lux
 }

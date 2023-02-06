@@ -186,6 +186,7 @@ impl Veml7700 {
     pub async fn configurer_automatiquement(&mut self) -> Result<(), rppal::i2c::Error> {
         self.configurer_gain(Gain::AlsGain1_8);
         self.configurer_temps_integration(TempsIntegration::AlsIt100MS);
+        self.configurer_capteur()?;
         self.correction_non_lineaire_resolution = false;
 
         let mut luminosite = self.lire_luminosite().await?;
@@ -203,6 +204,7 @@ impl Veml7700 {
                         self.temps_integration = self.temps_integration.suivant();
                     }
                 }
+                self.configurer_capteur()?;
                 luminosite = self.lire_luminosite().await?;
             }
         } else {
@@ -210,6 +212,7 @@ impl Veml7700 {
             self.correction_non_lineaire_resolution = true;
             while luminosite > 10000 && self.temps_integration != TempsIntegration::AlsIt25MS {
                 self.temps_integration = self.temps_integration.precedent();
+                self.configurer_capteur()?;
                 luminosite = self.lire_luminosite().await?;
             }
         }
