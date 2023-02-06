@@ -45,6 +45,9 @@ impl Veml7700 {
     }
 
     pub fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
+        if !self.configuration_modifiee {
+            return Ok(());
+        }
         let configuration = (self.gain.adresse() as u16) << 11
             | (self.temps_integration.adresse() as u16) << 6
             | (self.persistance.adresse() as u16) << 4
@@ -135,6 +138,7 @@ impl Veml7700 {
     }
 
     pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
+        self.configurer_capteur()?;
         self.attendre_avant_prochaine_lecture().await;
         self.derniere_lecture_donnees = SystemTime::now();
 
@@ -147,6 +151,7 @@ impl Veml7700 {
     }
 
     pub async fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
+        self.configurer_capteur()?;
         self.attendre_avant_prochaine_lecture().await;
         self.derniere_lecture_donnees = SystemTime::now();
 
