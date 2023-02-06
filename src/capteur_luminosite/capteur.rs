@@ -66,8 +66,16 @@ impl Veml7700 {
         self.gain = gain;
     }
 
+    pub fn gain(&self)->Gain{
+        self.gain
+    }
+
     pub fn configurer_temps_integration(&mut self, temps_integration: TempsIntegration) {
         self.temps_integration = temps_integration;
+    }
+
+    pub fn temps_integration(&self)->TempsIntegration{
+        self.temps_integration
     }
 
     pub fn configurer_persistance(&mut self, persistance: Persistance) {

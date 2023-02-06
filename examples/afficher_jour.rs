@@ -1,11 +1,12 @@
 // Tester cargo run --example tester_ecran
 
 use std::{
+    env,
     fs::File,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    }, env,
+    },
 };
 
 use cairo::{Context, Format, ImageSurface};
@@ -100,15 +101,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 match capteur_luminosite.lire_luminosite_lux().await {
                     Ok(valeur) => {
-                        log::info!("Luminosité mesurée avant correction automatique {valeur} lux")
+                        log::info!(
+                            "Luminosité mesurée avant configuration automatique {valeur} lux"
+                        )
                     }
                     Err(err) => {
-                        log::error!("Erreur lors de lecture de luminosité avant correction automatique {err}");
+                        log::error!("Erreur lors de lecture de luminosité avant configuration automatique {err}");
                     }
                 }
 
+                let gain = capteur_luminosite.gain();
+                let temps_integration = capteur_luminosite.temps_integration();
+                log::info!("Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",gain,temps_integration);
                 match   capteur_luminosite.configurer_automatiquement().await{
-                Ok(_)=>{},
+                Ok(_)=>  log::info!("Configuration : {:?} temps intégration : {:?}",gain,temps_integration),
                 Err(err)=>log::error!("Erreur lors de la configuration automatique du capteur de luminosité {err}")
                 }
 
