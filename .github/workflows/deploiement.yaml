@@ -47,7 +47,7 @@ jobs:
           path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error
-  construire:
+  construire-armv6:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.ref == 'refs/heads/master'
