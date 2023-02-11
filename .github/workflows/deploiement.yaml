@@ -16,6 +16,7 @@ jobs:
   construire:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v3
       - name: Installation des dépendances requises
@@ -55,11 +56,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Installation des dépendances requises
         run: | 
-          sudo dpkg --add-architecture armhf && \
+          sudo dpkg --add-architecture armel && \
           sudo apt-get update && \
           sudo apt-get install apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev && \
           sudo apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl && \
-          sudo apt-get install libcairo2-dev:armhf libpango1.0-dev:armhf libjpeg-dev:armhf libgif-dev:armhf librsvg2-dev:armhf
+          sudo apt-get install libcairo2-dev:armel libpango1.0-dev:armel libjpeg-dev:armel libgif-dev:armel librsvg2-dev:armel
       - name: Installation du compilateur armv6
         run : | 
           git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git && \
