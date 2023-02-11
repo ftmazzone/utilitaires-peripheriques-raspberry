@@ -1,0 +1,10 @@
+.git/
+.github/
+target/
+terraform/
+utilitaires/
+.vscode/
+
+configuration.json
+Dockerfile
+README.md
