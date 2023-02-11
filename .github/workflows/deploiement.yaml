@@ -85,7 +85,7 @@ jobs:
           cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour
       - uses: actions/upload-artifact@v3
         with:
-          name: gestion_ecran_eink_exemple
+          name: gestion_ecran_eink_exemple_armv6
           path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error
