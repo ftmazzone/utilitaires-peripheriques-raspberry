@@ -60,11 +60,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Installation des dépendances requises
         run: | 
-          dpkg --add-architecture armel && \
+          dpkg --add-architecture armhf && \
           apt-get update && \
           apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev librust-glib-sys-dev -y && \
           apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl git -y && \
-          apt-get install libcairo2-dev:armel libpango1.0-dev:armel libjpeg-dev:armel libgif-dev:armel librsvg2-dev:armel librust-glib-sys-dev:armel -y
+          apt-get install libcairo2-dev:armhf libpango1.0-dev:armhf libjpeg-dev:armhf libgif-dev:armhf librsvg2-dev:armhf librust-glib-sys-dev:armhf -y
       - name: Installation du compilateur armv6
         run : | 
           git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git && \
