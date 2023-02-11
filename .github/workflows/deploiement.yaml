@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Installation des dépendances requises
         run: | 
-          dpkg --add-architecture armel -y && \
+          dpkg --add-architecture armel && \
           apt-get update && \
           apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y && \
           apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl -y && \
