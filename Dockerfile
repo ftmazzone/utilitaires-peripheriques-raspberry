@@ -1,10 +1,10 @@
 FROM docker.io/rust:slim
 
-RUN dpkg --add-architecture armel
+RUN dpkg --add-architecture armhf
 RUN apt-get update
 RUN apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl git -y
-RUN apt-get install libcairo2-dev:armel libpango1.0-dev:armel libjpeg-dev:armel libgif-dev:armel librsvg2-dev:armel -y
-RUN apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y
+RUN apt-get install libcairo2-dev:armhf libpango1.0-dev:armhf libjpeg-dev:armhf libgif-dev:armhf librsvg2-dev:armhf librust-glib-sys-dev:armhf -y
+RUN apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev librust-glib-sys-dev -y
 
 RUN adduser --disabled-password --gecos "compilateur" compilateur
 USER compilateur
@@ -22,5 +22,10 @@ WORKDIR /home/compilateur/bme280
 
 COPY --chown=compilateur:compilateur . .
 
+ENV PKG_CONFIG_ALLOW_CROSS=1
+# ENV PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig
+# ENV PKG_CONFIG_SYSROOT_DIR=""
+# ENV PKG_CONFIG_PATH=/usr/share/pkgconfig:/usr/lib/arm-linux-gnueabihf/pkgconfig
 # ENV PKG_CONFIG_PATH=""
+USER root
 RUN cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour
