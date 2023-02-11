@@ -47,3 +47,38 @@ jobs:
           path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error
+  construire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Installation des dépendances requises
+        run: sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl
+      - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
+        id: registry-cargo
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CARGO_HOME }}
+          key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-armv6-registry-Cargo.lock
+          restore-keys: |
+            ${{ runner.os }}-armv6-registry-Cargo.lock
+      - name: Rechercher si le répertoire de construction est en mémoire temporaire
+        id: target-cargo
+        uses: actions/cache@v3
+        with:
+          path: ./target
+          key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-armv6-target-Cargo.lock
+          restore-keys: |
+            ${{ runner.os }}-armv6-target-Cargo.lock
+      - name: Construire l'application
+        run:  |
+          rustup --version
+          cargo --version
+          cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour
+      - uses: actions/upload-artifact@v3
+        with:
+          name: gestion_ecran_eink_exemple
+          path: ./target/release/examples/afficher_jour
+          retention-days: 1
+          if-no-files-found: error
