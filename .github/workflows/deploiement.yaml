@@ -61,7 +61,7 @@ jobs:
           dpkg --add-architecture armel && \
           apt-get update && \
           apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y && \
-          apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl -y && \
+          apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl git -y && \
           apt-get install libcairo2-dev:armel libpango1.0-dev:armel libjpeg-dev:armel libgif-dev:armel librsvg2-dev:armel -y
       - name: Installation du compilateur armv6
         run : | 
