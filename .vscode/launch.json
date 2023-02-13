@@ -59,6 +59,25 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'afficher_jour_rusttype'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=afficher_jour_rusttype",
+                    "--package=ecran"
+                ],
+                "filter": {
+                    "name": "afficher_jour_rusttype",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+
     ]
 }

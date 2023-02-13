@@ -2,7 +2,7 @@ name: Construction de l'exemple Gestion-Ecran-Eink
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "ajouter-exemple-rusttype"]
   pull_request:
     branches: [ "master" ]
   schedule:
@@ -47,3 +47,55 @@ jobs:
           path: ./target/release/examples/afficher_jour
           retention-days: 1
           if-no-files-found: error
+  construire-armv6:
+      runs-on: ubuntu-latest
+      timeout-minutes: 10
+      if: github.ref == 'refs/heads/master'
+      env:
+        COMPILATEUR_CROISE: cross-gcc-10.3.0-pi_0-1.tar.gz
+        ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bullseye/GCC%2010.3.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-10.3.0-pi_0-1.tar.gz/download -O cross-gcc-10.3.0-pi_0-1.tar.gz
+      steps:
+        - uses: actions/checkout@v3
+        - name: Rechercher si le compilateur croisé pour Raspberry Pi Zero est en mémoire temporaire
+          id: compilateur-croise
+          uses: actions/cache@v3
+          with:
+            path: ./${{ env.COMPILATEUR_CROISE }}
+            key: ${{ runner.os }}-${{ hashFiles(env.COMPILATEUR_CROISE) }}-${{ env.COMPILATEUR_CROISE }}
+        - name: Télécharger le compilateur croisé pour Raspberry Pi Zero
+          if: steps.compilateur-croise.outputs.cache-hit != 'true'
+          run: wget $ADRESSE_COMPILATEUR_CROISE
+        - name: Préparer le compilateur pour la compilation croisée ARMv6
+          run: |
+            sudo apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl
+            rustup target add arm-unknown-linux-gnueabihf
+            git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git
+            tar -xf $COMPILATEUR_CROISE
+            mv .cargo/config-compilation-croisee .cargo/config
+        - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
+          id: registry-cargo
+          uses: actions/cache@v3
+          with:
+            path: ${{ env.CARGO_HOME }}
+            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock-armv6
+            restore-keys: |
+              ${{ runner.os }}-registry-Cargo.lock
+        - name: Rechercher si le répertoire de construction est en mémoire temporaire
+          id: target-cargo
+          uses: actions/cache@v3
+          with:
+            path: ./target
+            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock-armv6
+            restore-keys: |
+              ${{ runner.os }}-target-Cargo.lock
+        - name: Construire l'application
+          run:  |
+            rustup --version
+            cargo --version
+            cargo build --release --target arm-unknown-linux-gnueabihf -p afficher_jour_rusttype.rs
+        - uses: actions/upload-artifact@v3
+          with:
+            name: afficher_jour_rusttype_armv6
+            path: ./target/arm-unknown-linux-gnueabihf/release/lire-afficher_jour_rusttype.rs
+            retention-days: 1
+            if-no-files-found: error
