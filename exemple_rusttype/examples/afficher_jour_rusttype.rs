@@ -12,7 +12,7 @@ fn main() {
     let scale = Scale::uniform(32.0);
 
     // The text to render
-    let text = &format!("This is RustType rendered into a png! {}",'\u{237c}'.to_string());
+    let text = &format!("This is RustType rendered into a png! {} ⚠ ↗",'\u{237c}'.to_string());
 
     // Use a dark red colour
     let colour = (150, 0, 0);
