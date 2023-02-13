@@ -1,9 +1,10 @@
 use image::{DynamicImage, Rgba};
 use rusttype::{point, Font, Scale};
+use std::fs;
 
 fn main() {
     // Load the font
-    let font_data = include_bytes!("/home/florent/.local/share/fonts/STIXTwoMath-Regular.ttf");
+    let font_data = &fs::read("./STIXTwoMath-Regular.ttf").unwrap();
     // This only succeeds if collection consists of one font
     let font = Font::try_from_bytes(font_data as &[u8]).expect("Error constructing Font");
 
