@@ -96,6 +96,6 @@ jobs:
         - uses: actions/upload-artifact@v3
           with:
             name: afficher_jour_rusttype_armv6
-            path: ./target/arm-unknown-linux-gnueabihf/release/afficher_jour_rusttype.rs
+            path: ./target/arm-unknown-linux-gnueabihf/release/afficher_jour_rusttype
             retention-days: 1
             if-no-files-found: error
