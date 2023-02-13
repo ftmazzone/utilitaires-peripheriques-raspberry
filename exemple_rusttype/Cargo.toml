@@ -1,0 +1,13 @@
+[package]
+name = "exemples_rusttype"
+version = "0.2.0"
+edition = "2021"
+
+[dev-dependencies]
+env_logger = "0"
+chrono = { version = "0", features = ["unstable-locales"] }
+rusttype= "0"
+image = { version = "0", default-features = false, features = ["png"] }
+
+[dependencies]
+ecran = { path = "../ecran" }

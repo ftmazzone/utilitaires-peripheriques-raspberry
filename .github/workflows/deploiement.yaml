@@ -92,7 +92,7 @@ jobs:
           run:  |
             rustup --version
             cargo --version
-            cargo build --release --target arm-unknown-linux-gnueabihf -p afficher_jour_rusttype
+            cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype
         - uses: actions/upload-artifact@v3
           with:
             name: afficher_jour_rusttype_armv6
