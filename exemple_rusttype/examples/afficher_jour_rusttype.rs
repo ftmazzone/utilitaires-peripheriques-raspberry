@@ -225,7 +225,7 @@ fn creer_image() -> Vec<u8> {
 
     // Loop through the glyphs in the text, positing each one on a line
 
-    let mut donnees_image: Vec<u16> = Vec::new();
+    let mut donnees_image: Vec<u16> = Vec::with_capacity(Wepd7In5BV2::largeur() *Wepd7In5BV2::hauteur());
     for glyph in glyphs {
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
             // Draw the glyph into the image per-pixel by using the draw closure
