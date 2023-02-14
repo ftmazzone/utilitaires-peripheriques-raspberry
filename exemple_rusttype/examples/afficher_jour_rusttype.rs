@@ -226,6 +226,7 @@ fn creer_image() -> Vec<u8> {
     // Loop through the glyphs in the text, positing each one on a line
 
     let mut donnees_image: Vec<u16> = vec![0; Wepd7In5BV2::largeur() * Wepd7In5BV2::hauteur()];
+    let mut cpt = 0;
     for glyph in glyphs {
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
             // Draw the glyph into the image per-pixel by using the draw closure
@@ -236,7 +237,8 @@ fn creer_image() -> Vec<u8> {
                 } else {
                     pixel = [couleur_pixel_565, 0, 0]
                 }
-                donnees_image.push(pixel[0]);
+                donnees_image[cpt] = pixel[0];
+                cpt = cpt + 1;
                 image.put_pixel(
                     // Offset the position by the glyph bounding box
                     x + bounding_box.min.x as u32,
@@ -325,12 +327,16 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
 }
 
 pub fn to_bytes(input: &[u16]) -> Vec<u8> {
-    let mut bytes = Vec::with_capacity(2 * input.len());
+    let mut bytes = vec![0; 2 * input.len()];
 
+    let mut cpt = 0;
     for value in input {
-        bytes.extend(&value.to_be_bytes());
+        let pixel = &value.to_be_bytes();
+        bytes[cpt] = pixel[0];
+        bytes[cpt + 1] = pixel[1];
+        cpt = cpt + 2;
     }
-    println!("bytes.len() {}", bytes.len());
+    println!("bytes.len() {} input.len() {}", bytes.len(), input.len());
 
     bytes
 }
