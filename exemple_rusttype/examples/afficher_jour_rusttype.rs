@@ -78,6 +78,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         eclairage.as_mut().unwrap().demarrer();
     }
 
+    afficher_image(&mut ecran, String::new()).await?;
+
     while operationnel.load(Ordering::SeqCst)
         && !rx.is_disconnected()
         && Local::now() - heure_demarrage < chrono::Duration::minutes(30)
