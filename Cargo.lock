@@ -270,8 +270,12 @@ dependencies = [
  "chrono",
  "ecran",
  "env_logger",
+ "flume",
  "image",
+ "log",
+ "rppal",
  "rusttype",
+ "tokio",
 ]
 
 [[package]]
