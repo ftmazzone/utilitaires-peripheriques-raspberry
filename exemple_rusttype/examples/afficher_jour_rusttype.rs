@@ -331,7 +331,7 @@ pub fn to_bytes(input: &[u16]) -> Vec<u8> {
 
     let mut cpt = 0;
     for value in input {
-        let pixel = &value.to_be_bytes();
+        let pixel = &value.to_le_bytes();
         bytes[cpt] = pixel[0];
         bytes[cpt + 1] = pixel[1];
         cpt = cpt + 2;
