@@ -233,7 +233,7 @@ fn creer_image() -> Vec<u8> {
             glyph.draw(|x, y, v| {
                 let pixel;
                 if v < 0.5 {
-                    pixel = [0, 0, 0];
+                    pixel = [255, 0, 0];
                 } else {
                     pixel = [couleur_pixel_565, 0, 0]
                 }
