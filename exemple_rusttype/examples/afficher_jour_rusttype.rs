@@ -237,7 +237,7 @@ fn creer_image() -> Vec<u8> {
                 } else {
                     pixel = [couleur_pixel_565, 0, 0]
                 }
-                donnees_image[(y as usize + bounding_box.min.y as usize) * 480
+                donnees_image[(y as usize + bounding_box.min.y as usize) * 800
                     + (x as usize + bounding_box.min.x as usize)] = pixel[0];
                 cpt = cpt + 1;
                 image.put_pixel(
