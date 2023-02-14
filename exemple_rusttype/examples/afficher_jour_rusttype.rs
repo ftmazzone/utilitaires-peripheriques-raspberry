@@ -193,7 +193,7 @@ fn creer_image() -> Vec<u8> {
     let text = &format!("Png ! {} ⚠ ↗", '\u{237c}'.to_string());
 
     // Use a dark red colour
-    let colour = (255, 255, 0);
+    let colour = (255, 0, 0);
 
     let v_metrics = font.v_metrics(scale);
 
@@ -225,7 +225,7 @@ fn creer_image() -> Vec<u8> {
 
     // Loop through the glyphs in the text, positing each one on a line
 
-    let mut donnees_image: Vec<u16> = vec![0; Wepd7In5BV2::largeur() * Wepd7In5BV2::hauteur()];
+    let mut donnees_image: Vec<u16> = vec![255; Wepd7In5BV2::largeur() * Wepd7In5BV2::hauteur()];
     let mut cpt = 0;
     for glyph in glyphs {
         if let Some(bounding_box) = glyph.pixel_bounding_box() {
