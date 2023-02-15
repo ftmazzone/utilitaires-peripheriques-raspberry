@@ -13,9 +13,9 @@ use std::{
 use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
-use image::{DynamicImage, Rgb};
+use image::{DynamicImage, ImageBuffer, Rgb};
 use rppal::spi::Bus;
-use rusttype::{point, Font, Scale};
+use rusttype::{point, Font, PositionedGlyph, Scale};
 use tokio::time::timeout;
 
 #[tokio::main]
@@ -144,13 +144,14 @@ pub async fn afficher_image(
     // contexte.set_source_rgb(255.0, 255.0, 255.0);
     // contexte.paint()?;
 
-    // if Local::now().minute() as f32 - ((Local::now().minute() as f32) / 10.).floor() * 10. < 1.
-    //     || luminosite_lux.eq(&String::new())
-    // {
-    //     afficher_jour(&contexte)?;
-    // } else {
-    //     afficher_valeurs_capteurs(&contexte, luminosite_lux)?;
-    // }
+    let data = match Local::now().minute() as f32
+        - ((Local::now().minute() as f32) / 10.).floor() * 10.
+        < 1.
+        || luminosite_lux.eq(&String::new())
+    {
+        true => afficher_jour()?,
+        false => afficher_jour()?, //  afficher_valeurs_capteurs(&contexte, luminosite_lux)?
+    };
 
     // let mut file = File::create("cairo_output.png").expect("Impossible de créer un fichier");
     // surface
@@ -160,7 +161,7 @@ pub async fn afficher_image(
     // drop(contexte);
     // let data = surface.data()?;
 
-    let data = creer_image();
+    // let data = creer_image();
 
     if ecran.is_some() {
         log::info!("Initialiser");
@@ -180,43 +181,40 @@ pub async fn afficher_image(
     Ok(())
 }
 
-fn creer_image() -> Vec<u8> {
-    // Load the font
-    let font_data = &fs::read("./STIXTwoMath-Regular.ttf").unwrap();
-    // This only succeeds if collection consists of one font
-    let font = Font::try_from_bytes(font_data as &[u8]).expect("Error constructing Font");
+fn creer_glyphe_texte(
+    police: Font,
+    taille_police: Scale,
+    texte: String,
+) -> (Vec<PositionedGlyph>, u32, u32) {
+    let v_metriques = police.v_metrics(taille_police);
 
-    // The font size to use
-    let scale = Scale::uniform(64.0);
-
-    // The text to render
-    let text = &format!("Png ! {} ⚠ ↗", '\u{237c}'.to_string());
-
-    // Use a dark red colour
-    let colour = (255, 0, 0);
-
-    let v_metrics = font.v_metrics(scale);
-
-    // layout the glyphs in a line with 20 pixels padding
-    let glyphs: Vec<_> = font
-        .layout(text, scale, point(20.0, 20.0 + v_metrics.ascent))
+    let glyphes: Vec<PositionedGlyph> = police
+        .layout(&texte, taille_police, point(0., 0. + v_metriques.ascent))
         .collect();
 
-    // work out the layout size
-    let glyphs_height = (v_metrics.ascent - v_metrics.descent).ceil() as u32;
-    let glyphs_width = {
-        let min_x = glyphs
+    let hauteur = (v_metriques.ascent - v_metriques.descent).ceil() as u32;
+    let largeur = {
+        let min_x = glyphes
             .first()
             .map(|g| g.pixel_bounding_box().unwrap().min.x)
             .unwrap();
-        let max_x = glyphs
+        let max_x = glyphes
             .last()
             .map(|g| g.pixel_bounding_box().unwrap().max.x)
             .unwrap();
         (max_x - min_x) as u32
     };
+    (glyphes, hauteur, largeur)
+}
 
-    let couleur_pixel_565 = convertir_rgb_888_en_reg_565(colour);
+fn dessiner_glpyhe(
+    glyphes: Vec<PositionedGlyph>,
+    couleur: (u8, u8, u8),
+    hauteur: u32,
+    largeur: u32,
+    donnees_rgb565: &mut [u16],
+) {
+    let couleur_pixel_565 = convertir_rgb_888_en_reg_565(couleur);
 
     // Create a new rgba image with some padding
     let mut image =
@@ -225,36 +223,22 @@ fn creer_image() -> Vec<u8> {
 
     // Loop through the glyphs in the text, positing each one on a line
 
-    let mut donnees_image: Vec<u16> = vec![255; Wepd7In5BV2::largeur() * Wepd7In5BV2::hauteur()];
-    let mut cpt = 0;
-    for glyph in glyphs {
-        if let Some(bounding_box) = glyph.pixel_bounding_box() {
+    for glyphe in glyphes {
+        if let Some(bounding_box) = glyphe.pixel_bounding_box() {
             // Draw the glyph into the image per-pixel by using the draw closure
-            glyph.draw(|x, y, v| {
+            glyphe.draw(|x, y, v| {
                 let pixel;
                 if v < 0.5 {
-                    pixel = [255, 0, 0];
+                    pixel = 65535;
                 } else {
-                    pixel = [couleur_pixel_565, 0, 0]
+                    pixel = couleur_pixel_565
                 }
-                donnees_image[(y as usize + bounding_box.min.y as usize) * 800
-                    + (x as usize + bounding_box.min.x as usize)] = pixel[0];
-                cpt = cpt + 1;
-                image.put_pixel(
-                    // Offset the position by the glyph bounding box
-                    x + bounding_box.min.x as u32,
-                    y + bounding_box.min.y as u32,
-                    // Turn the coverage into an alpha value
-                    Rgb(pixel),
-                )
+                donnees_rgb565[(y as usize + bounding_box.min.y as usize + hauteur as usize)
+                    * Wepd7In5BV2::largeur()
+                    + (x as usize + bounding_box.min.x as usize)] = pixel;
             });
         }
     }
-
-    // Save the image to a png file
-    image.save("image_example.png").unwrap();
-    println!("Generated: image_example.png");
-    to_bytes(&donnees_image)
 }
 
 fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
@@ -262,6 +246,79 @@ fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
         + ((couleur.1 & 0b11111100) << 3) as u16
         + (couleur.2 >> 3) as u16;
     rgb_565
+}
+
+fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    log::info!("Afficher le jour courant");
+    let couleur = (255, 0, 0);
+    let fichier_police = &fs::read("./STIXTwoMath-Regular.ttf").unwrap();
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let taille_police = Scale::uniform(120.);
+
+    let mut donnees_rgb565: Vec<u16> =
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize * 2];
+
+    // Jour
+    let texte_a_afficher = &Local::now()
+        .format_localized("%A", Locale::fr_FR)
+        .to_string();
+    let mut texte_a_afficher_characteres: Vec<char> = texte_a_afficher.chars().collect();
+    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0]
+        .to_uppercase()
+        .nth(0)
+        .unwrap();
+    let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
+
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+
+    dessiner_glpyhe(glyphes, couleur, hauteur, largeur, &mut donnees_rgb565);
+
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let texte_a_afficher = Local::now()
+        .format_localized("%e %B", Locale::fr_FR)
+        .to_string();
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        hauteur + 120,
+        largeur,
+        &mut donnees_rgb565,
+    );
+
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let texte_a_afficher = Local::now()
+        .format_localized("%R", Locale::fr_FR)
+        .to_string();
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        hauteur + 240,
+        largeur,
+        &mut donnees_rgb565,
+    );
+
+    let image = ImageBuffer::from_fn(
+        Wepd7In5BV2::largeur() as u32,
+        Wepd7In5BV2::hauteur() as u32,
+        |x, y| {
+            let pixel = donnees_rgb565[(y * Wepd7In5BV2::largeur() as u32 + x) as usize];
+
+            let bleu = ((pixel & 0x001F) << 3) as u8;
+            let vert = ((pixel & 0x07E0) >> 3) as u8;
+            let rouge = ((pixel & 0xF800) >> 8) as u8;
+
+            image::Rgb::<u8>([rouge, vert, bleu])
+        },
+    );
+
+    image.save("image_example.png").unwrap();
+    println!("Generated: image_example.png");
+
+    let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
+    let a = donnees.len();
+    Ok(donnees)
 }
 
 async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
@@ -327,7 +384,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
     luminosite_lux
 }
 
-pub fn to_bytes(input: &[u16]) -> Vec<u8> {
+pub fn convertir_vec_u16_vers_vec_u8(input: &[u16]) -> Vec<u8> {
     let mut bytes = vec![0; 2 * input.len()];
 
     let mut cpt = 0;
