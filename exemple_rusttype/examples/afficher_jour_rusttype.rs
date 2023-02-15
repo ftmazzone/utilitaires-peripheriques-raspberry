@@ -258,7 +258,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let taille_police = Scale::uniform(120.);
 
     let mut donnees_rgb565: Vec<u16> =
-        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize * 2];
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize ];
 
     // Jour
     let texte_a_afficher = &Local::now()
