@@ -253,9 +253,9 @@ fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
 fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     log::info!("Afficher le jour courant");
     let couleur = (255, 0, 0);
-    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf").unwrap();
+    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf").unwrap();
     let police = Font::try_from_bytes(fichier_police).unwrap();
-    let taille_police = Scale::uniform(120.);
+    let taille_police = Scale::uniform(150.);
 
     let mut donnees_rgb565: Vec<u16> =
         vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize ];
@@ -273,7 +273,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 
     let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
 
-    dessiner_glpyhe(glyphes, couleur, hauteur, largeur, &mut donnees_rgb565);
+    dessiner_glpyhe(glyphes, couleur, 0, largeur, &mut donnees_rgb565);
 
     let police = Font::try_from_bytes(fichier_police).unwrap();
     let texte_a_afficher = Local::now()
@@ -283,7 +283,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     dessiner_glpyhe(
         glyphes,
         couleur,
-        hauteur + 120,
+        hauteur ,
         largeur,
         &mut donnees_rgb565,
     );
@@ -296,7 +296,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     dessiner_glpyhe(
         glyphes,
         couleur,
-        hauteur + 240,
+        hauteur + 150,
         largeur,
         &mut donnees_rgb565,
     );
