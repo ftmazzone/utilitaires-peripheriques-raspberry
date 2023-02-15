@@ -253,7 +253,7 @@ fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
 fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     log::info!("Afficher le jour courant");
     let couleur = (255, 0, 0);
-    let fichier_police = &fs::read("./STIXTwoMath-Regular.ttf").unwrap();
+    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf").unwrap();
     let police = Font::try_from_bytes(fichier_police).unwrap();
     let taille_police = Scale::uniform(120.);
 
