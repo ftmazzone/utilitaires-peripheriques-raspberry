@@ -153,6 +153,8 @@ pub async fn afficher_image(
         false => afficher_jour()?, //  afficher_valeurs_capteurs(&contexte, luminosite_lux)?
     };
 
+    println!("len data {}",data.len());
+
     // let mut file = File::create("cairo_output.png").expect("Impossible de créer un fichier");
     // surface
     //     .write_to_png(&mut file)
