@@ -367,8 +367,6 @@ fn afficher_valeurs_capteurs(
     luminosite_lux: String,
 ) -> Result<Vec<u16>, Box<dyn std::error::Error>> {
     log::info!("Afficher la luminosité");
-
-    log::info!("Afficher le jour courant");
     let couleur = (0, 0, 0);
     let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
     let police = Font::try_from_bytes(fichier_police).unwrap();
