@@ -141,10 +141,10 @@ impl Veml7700 {
     pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
         self.configurer_capteur()?;
         self.attendre_avant_prochaine_lecture().await;
-        self.derniere_lecture_donnees = SystemTime::now();
 
         let mut tampon = [0u8; 2];
         self.i2c.block_read(Registre::Als.adresse(), &mut tampon)?;
+        self.derniere_lecture_donnees = SystemTime::now();
         match self.big_endian {
             true => Ok(u16::from_be_bytes(tampon)),
             false => Ok(u16::from_le_bytes(tampon)),
@@ -154,11 +154,11 @@ impl Veml7700 {
     pub async fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
         self.configurer_capteur()?;
         self.attendre_avant_prochaine_lecture().await;
-        self.derniere_lecture_donnees = SystemTime::now();
 
         let mut tampon = [0u8; 2];
         self.i2c
             .block_read(Registre::AlsWhite.adresse(), &mut tampon)?;
+        self.derniere_lecture_donnees = SystemTime::now();
         match self.big_endian {
             true => Ok(u16::from_be_bytes(tampon)),
             false => Ok(u16::from_le_bytes(tampon)),
