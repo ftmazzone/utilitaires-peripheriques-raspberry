@@ -2,7 +2,7 @@ name: Construction de l'exemple Gestion-Ecran-Eink
 
 on:
   push:
-    branches: [ "master", "ajouter-exemple-rusttype"]
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
   schedule:
