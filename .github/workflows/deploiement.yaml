@@ -50,7 +50,7 @@ jobs:
   construire-armv6:
       runs-on: ubuntu-latest
       timeout-minutes: 10
-      if: github.ref == 'refs/heads/master'
+      # if: github.ref == 'refs/heads/master'
       env:
         COMPILATEUR_CROISE: cross-gcc-10.3.0-pi_0-1.tar.gz
         ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bullseye/GCC%2010.3.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-10.3.0-pi_0-1.tar.gz/download -O cross-gcc-10.3.0-pi_0-1.tar.gz
