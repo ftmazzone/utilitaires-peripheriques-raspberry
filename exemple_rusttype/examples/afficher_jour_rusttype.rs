@@ -12,7 +12,7 @@ use std::{
 use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
-use image::{ ImageBuffer};
+use image::ImageBuffer;
 use rppal::spi::Bus;
 use rusttype::{point, Font, PositionedGlyph, Scale};
 use tokio::time::timeout;
@@ -130,14 +130,32 @@ pub async fn afficher_image(
     ecran: &mut Option<Wepd7In5BV2>,
     luminosite_lux: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let data = match Local::now().minute() as f32
+    let donnees_rgb565 = match Local::now().minute() as f32
         - ((Local::now().minute() as f32) / 10.).floor() * 10.
         < 1.
         || luminosite_lux.eq(&String::new())
     {
         true => afficher_jour()?,
-        false => afficher_jour()?,
+        false => afficher_valeurs_capteurs(luminosite_lux)?,
     };
+
+    let image = ImageBuffer::from_fn(
+        Wepd7In5BV2::largeur() as u32,
+        Wepd7In5BV2::hauteur() as u32,
+        |x, y| {
+            let pixel = donnees_rgb565[(y * Wepd7In5BV2::largeur() as u32 + x) as usize];
+
+            let bleu = ((pixel & 0x001F) << 3) as u8;
+            let vert = ((pixel & 0x07E0) >> 3) as u8;
+            let rouge = ((pixel & 0xF800) >> 8) as u8;
+
+            image::Rgb::<u8>([rouge, vert, bleu])
+        },
+    );
+
+    image.save("image_example.png").unwrap();
+
+    let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
 
     if ecran.is_some() {
         log::info!("Initialiser");
@@ -146,7 +164,7 @@ pub async fn afficher_image(
         ecran
             .as_mut()
             .unwrap()
-            .sauvegarder_image_memoire_tampon(&data)?;
+            .sauvegarder_image_memoire_tampon(&donnees)?;
     }
 
     if ecran.is_some() {
@@ -223,7 +241,7 @@ fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
     rgb_565
 }
 
-fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+fn afficher_jour() -> Result<Vec<u16>, Box<dyn std::error::Error>> {
     log::info!("Afficher le jour courant");
     let couleur = (255, 0, 0);
     let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
@@ -279,24 +297,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         &mut donnees_rgb565,
     );
 
-    let image = ImageBuffer::from_fn(
-        Wepd7In5BV2::largeur() as u32,
-        Wepd7In5BV2::hauteur() as u32,
-        |x, y| {
-            let pixel = donnees_rgb565[(y * Wepd7In5BV2::largeur() as u32 + x) as usize];
-
-            let bleu = ((pixel & 0x001F) << 3) as u8;
-            let vert = ((pixel & 0x07E0) >> 3) as u8;
-            let rouge = ((pixel & 0xF800) >> 8) as u8;
-
-            image::Rgb::<u8>([rouge, vert, bleu])
-        },
-    );
-
-    image.save("image_example.png").unwrap();
-
-    let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
-    Ok(donnees)
+    Ok(donnees_rgb565)
 }
 
 async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
@@ -360,6 +361,34 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
         luminosite_lux = None;
     }
     luminosite_lux
+}
+
+fn afficher_valeurs_capteurs(
+    luminosite_lux: String,
+) -> Result<Vec<u16>, Box<dyn std::error::Error>> {
+    log::info!("Afficher la luminosité");
+
+    log::info!("Afficher le jour courant");
+    let couleur = (0, 0, 0);
+    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let taille_police = Scale::uniform(60.);
+
+    let mut donnees_rgb565: Vec<u16> =
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
+
+    let texte_a_afficher = format!("Luminosité: {luminosite_lux} lux");
+
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as u32 / 2 - hauteur / 2,
+        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
+        &mut donnees_rgb565,
+    );
+
+    Ok(donnees_rgb565)
 }
 
 pub fn convertir_vec_u16_vers_vec_u8(input: &[u16]) -> Vec<u8> {
