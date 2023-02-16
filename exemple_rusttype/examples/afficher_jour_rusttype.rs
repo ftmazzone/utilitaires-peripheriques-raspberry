@@ -131,39 +131,14 @@ pub async fn afficher_image(
     ecran: &mut Option<Wepd7In5BV2>,
     luminosite_lux: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // // Initialise cairo
-    // let mut surface = ImageSurface::create(
-    //     Format::Rgb16_565,
-    //     Wepd7In5BV2::largeur() as i32,
-    //     Wepd7In5BV2::hauteur() as i32,
-    // )
-    // .expect("Impossible d'initialiser la surface");
-
-    // let contexte = Context::new(&mut surface)?;
-
-    // contexte.set_source_rgb(255.0, 255.0, 255.0);
-    // contexte.paint()?;
-
     let data = match Local::now().minute() as f32
         - ((Local::now().minute() as f32) / 10.).floor() * 10.
         < 1.
         || luminosite_lux.eq(&String::new())
     {
         true => afficher_jour()?,
-        false => afficher_jour()?, //  afficher_valeurs_capteurs(&contexte, luminosite_lux)?
+        false => afficher_jour()?,
     };
-
-    println!("len data {}",data.len());
-
-    // let mut file = File::create("cairo_output.png").expect("Impossible de créer un fichier");
-    // surface
-    //     .write_to_png(&mut file)
-    //     .expect("Couldn’t write to png");
-
-    // drop(contexte);
-    // let data = surface.data()?;
-
-    // let data = creer_image();
 
     if ecran.is_some() {
         log::info!("Initialiser");
@@ -174,7 +149,6 @@ pub async fn afficher_image(
             .unwrap()
             .sauvegarder_image_memoire_tampon(&data)?;
     }
-    // drop(data);
 
     if ecran.is_some() {
         log::info!("Afficher l'image");
@@ -235,9 +209,17 @@ fn dessiner_glpyhe(
                 } else {
                     pixel = couleur_pixel_565
                 }
-                donnees_rgb565[(y as usize + bounding_box.min.y as usize + hauteur as usize)
-                    * Wepd7In5BV2::largeur()
-                    + (x as usize + bounding_box.min.x as usize)] = pixel;
+                let y_pixel = y as i32 + bounding_box.min.y + hauteur as i32;
+                let x_pixel = x as i32 + bounding_box.min.x + largeur as i32;
+
+                if !(y_pixel < 0
+                    || x_pixel < 0
+                    || y_pixel >= Wepd7In5BV2::hauteur() as i32
+                    || x_pixel >= Wepd7In5BV2::largeur() as i32)
+                {
+                    donnees_rgb565[y_pixel as usize * Wepd7In5BV2::largeur() + x_pixel as usize] =
+                        pixel;
+                }
             });
         }
     }
@@ -255,10 +237,10 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let couleur = (255, 0, 0);
     let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
     let police = Font::try_from_bytes(fichier_police).unwrap();
-    let taille_police = Scale::uniform(35.);
+    let taille_police = Scale::uniform(140.);
 
     let mut donnees_rgb565: Vec<u16> =
-        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize ];
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
 
     // Jour
     let texte_a_afficher = &Local::now()
@@ -273,8 +255,15 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 
     let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
 
-    dessiner_glpyhe(glyphes, couleur, 0, largeur, &mut donnees_rgb565);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as u32 / 5 - hauteur / 2,
+        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
+        &mut donnees_rgb565,
+    );
 
+    let couleur = (0, 0, 0);
     let police = Font::try_from_bytes(fichier_police).unwrap();
     let texte_a_afficher = Local::now()
         .format_localized("%e %B", Locale::fr_FR)
@@ -283,8 +272,8 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     dessiner_glpyhe(
         glyphes,
         couleur,
-        hauteur ,
-        largeur,
+        Wepd7In5BV2::hauteur() as u32 / 2 - hauteur / 2,
+        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
         &mut donnees_rgb565,
     );
 
@@ -296,8 +285,8 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     dessiner_glpyhe(
         glyphes,
         couleur,
-        hauteur + 150,
-        largeur,
+        Wepd7In5BV2::hauteur() as u32 * 4 / 5 - hauteur / 2,
+        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
         &mut donnees_rgb565,
     );
 
@@ -316,7 +305,6 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     );
 
     image.save("image_example.png").unwrap();
-    println!("Generated: image_example.png");
 
     let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
     let a = donnees.len();
@@ -396,7 +384,6 @@ pub fn convertir_vec_u16_vers_vec_u8(input: &[u16]) -> Vec<u8> {
         bytes[cpt + 1] = pixel[1];
         cpt = cpt + 2;
     }
-    println!("bytes.len() {} input.len() {}", bytes.len(), input.len());
 
     bytes
 }
