@@ -31,7 +31,7 @@
                 "args": [
                     "build",
                     "--example=afficher_jour",
-                    "--package=ecran"
+                    "--package=exemples_cairo"
                 ],
                 "filter": {
                     "name": "afficher_jour",
@@ -50,10 +50,47 @@
                     "test",
                     "--no-run",
                     "--example=afficher_jour",
-                    "--package=ecran"
+                    "--package=exemples_cairo"
                 ],
                 "filter": {
                     "name": "afficher_jour",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'afficher_jour_rusttype'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=afficher_jour_rusttype",
+                    "--package=exemples_rusttype"
+                ],
+                "filter": {
+                    "name": "afficher_jour_rusttype",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'afficher_jour_rusttype'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=afficher_jour_rusttype",
+                    "--package=exemples_rusttype"
+                ],
+                "filter": {
+                    "name": "afficher_jour_rusttype",
                     "kind": "example"
                 }
             },

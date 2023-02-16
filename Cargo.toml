@@ -1,16 +1,7 @@
-[package]
-name = "ecran"
-version = "0.2.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dev-dependencies]
-cairo-rs = { version = "0", features = ["png"] }
-env_logger = "0"
-chrono = { version = "0", features = ["unstable-locales"] }
-
-[dependencies]
-flume = { version = "0" }
-rppal = { version = "0" }
-log = "0"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal"] }
+members = [
+    "ecran",
+    "exemple_cairo",
+    "exemple_rusttype"
+]
