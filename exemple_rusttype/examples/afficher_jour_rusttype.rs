@@ -2,8 +2,7 @@
 
 use std::{
     env,
-    fs::{self, File},
-    io::Cursor,
+    fs::{self},
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -13,7 +12,7 @@ use std::{
 use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
-use image::{DynamicImage, ImageBuffer, Rgb};
+use image::{ ImageBuffer};
 use rppal::spi::Bus;
 use rusttype::{point, Font, PositionedGlyph, Scale};
 use tokio::time::timeout;
@@ -157,11 +156,11 @@ pub async fn afficher_image(
     Ok(())
 }
 
-fn creer_glyphe_texte(
-    police: Font,
+fn creer_glyphe_texte<'a>(
+    police: &'a Font,
     taille_police: Scale,
     texte: String,
-) -> (Vec<PositionedGlyph>, u32, u32) {
+) -> (Vec<PositionedGlyph<'a>>, u32, u32) {
     let v_metriques = police.v_metrics(taille_police);
 
     let glyphes: Vec<PositionedGlyph> = police
@@ -192,16 +191,8 @@ fn dessiner_glpyhe(
 ) {
     let couleur_pixel_565 = convertir_rgb_888_en_reg_565(couleur);
 
-    // Create a new rgba image with some padding
-    let mut image =
-        DynamicImage::new_rgb16(Wepd7In5BV2::largeur() as u32, Wepd7In5BV2::hauteur() as u32)
-            .to_rgb16();
-
-    // Loop through the glyphs in the text, positing each one on a line
-
     for glyphe in glyphes {
         if let Some(bounding_box) = glyphe.pixel_bounding_box() {
-            // Draw the glyph into the image per-pixel by using the draw closure
             glyphe.draw(|x, y, v| {
                 let pixel;
                 if v < 0.5 {
@@ -253,7 +244,7 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         .unwrap();
     let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
 
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
 
     dessiner_glpyhe(
         glyphes,
@@ -264,11 +255,10 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     );
 
     let couleur = (0, 0, 0);
-    let police = Font::try_from_bytes(fichier_police).unwrap();
     let texte_a_afficher = Local::now()
         .format_localized("%e %B", Locale::fr_FR)
         .to_string();
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
     dessiner_glpyhe(
         glyphes,
         couleur,
@@ -277,11 +267,10 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         &mut donnees_rgb565,
     );
 
-    let police = Font::try_from_bytes(fichier_police).unwrap();
     let texte_a_afficher = Local::now()
         .format_localized("%R", Locale::fr_FR)
         .to_string();
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(police, taille_police, texte_a_afficher);
+    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
     dessiner_glpyhe(
         glyphes,
         couleur,
@@ -307,7 +296,6 @@ fn afficher_jour() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     image.save("image_example.png").unwrap();
 
     let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
-    let a = donnees.len();
     Ok(donnees)
 }
 
