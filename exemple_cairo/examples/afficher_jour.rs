@@ -225,7 +225,7 @@ fn afficher_valeurs_capteurs(
     contexte: &Context,
     luminosite_lux: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    log::info!("Afficher le jour courant");
+    log::info!("Afficher la luminosité");
     contexte.select_font_face("serif", cairo::FontSlant::Normal, cairo::FontWeight::Normal);
 
     contexte.set_font_size(50.0);
