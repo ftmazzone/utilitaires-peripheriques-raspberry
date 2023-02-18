@@ -80,6 +80,8 @@ impl Veml7700 {
             .block_write(Registre::AlsConfig as u8, &configuration)?;
         self.configuration_modifiee = false;
         self.derniere_lecture_donnees = SystemTime::now();
+
+        println!("configuration_capteur {:?}", configuration);
         Ok(())
     }
 
