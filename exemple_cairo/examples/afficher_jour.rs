@@ -1,4 +1,4 @@
-// Tester cargo run --example tester_ecran
+// Tester cargo run --example afficher_jour
 
 use std::{
     env,
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialiser le capteur de luminosité
     let mut capteur_luminosite = match Veml7700::new() {
-        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur() {
+        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur().await {
             Ok(_) => Some(capteur_luminosite),
             Err(err) => {
                 log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
@@ -247,7 +247,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
     if capteur_luminosite.is_some() {
         let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
 
-        match capteur_luminosite.demarrer() {
+        match capteur_luminosite.demarrer().await {
             Ok(_) => {}
             Err(err) => {
                 log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
@@ -266,7 +266,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
         }
 
         log::info!(
-            "Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",
+            "Configuration avant configuration automatique gain : {:?} temps intégration : {:?}",
             capteur_luminosite.gain(),
             capteur_luminosite.temps_integration()
         );
@@ -292,7 +292,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
             }
         }
 
-        match capteur_luminosite.arrêter() {
+        match capteur_luminosite.arrêter().await {
             Ok(_) => {}
             Err(err) => {
                 log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")

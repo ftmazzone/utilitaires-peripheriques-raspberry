@@ -1,4 +1,4 @@
-// Tester cargo run --example tester_ecran
+// Tester cargo run --example afficher_jour_rusttype
 
 use std::{
     env,
@@ -13,6 +13,8 @@ use chrono::{Local, Locale, Timelike};
 use ecran::capteur_luminosite::capteur::Veml7700;
 use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use image::ImageBuffer;
+use log::log_enabled;
+use log::Level::Info;
 use rppal::spi::Bus;
 use rusttype::{point, Font, PositionedGlyph, Scale};
 use tokio::time::timeout;
@@ -36,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialiser le capteur de luminosité
     let mut capteur_luminosite = match Veml7700::new() {
-        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur() {
+        Ok(mut capteur_luminosite) => match capteur_luminosite.configurer_capteur().await {
             Ok(_) => Some(capteur_luminosite),
             Err(err) => {
                 log::error!("Erreur lors l'initialisation du capteur de luminosité {err}");
@@ -139,72 +141,216 @@ pub async fn afficher_image(
         false => afficher_valeurs_capteurs(luminosite_lux)?,
     };
 
-    let image = ImageBuffer::from_fn(
-        Wepd7In5BV2::largeur() as u32,
-        Wepd7In5BV2::hauteur() as u32,
-        |x, y| {
-            let pixel = donnees_rgb565[(y * Wepd7In5BV2::largeur() as u32 + x) as usize];
+    afficher_image_rusttype(ecran, donnees_rgb565).await?;
+    Ok(())
+}
 
-            let bleu = ((pixel & 0x001F) << 3) as u8;
-            let vert = ((pixel & 0x07E0) >> 3) as u8;
-            let rouge = ((pixel & 0xF800) >> 8) as u8;
+fn afficher_jour() -> Result<Vec<u16>, Box<dyn std::error::Error>> {
+    log::info!("Afficher le jour courant");
+    let couleur = (255, 0, 0);
+    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let taille_police = Scale::uniform(140.);
 
-            image::Rgb::<u8>([rouge, vert, bleu])
-        },
+    let mut donnees_rgb565: Vec<u16> =
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
+
+    // Jour
+    let texte_a_afficher = &Local::now()
+        .format_localized("%A", Locale::fr_FR)
+        .to_string();
+    let mut texte_a_afficher_characteres: Vec<char> = texte_a_afficher.chars().collect();
+    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0]
+        .to_uppercase()
+        .nth(0)
+        .unwrap();
+    let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
+
+    let (glyphes, hauteur, largeur, _y_min) =
+        creer_glyphe_texte(&police, taille_police, &texte_a_afficher);
+
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as i32 / 5 - hauteur as i32 / 2,
+        Wepd7In5BV2::largeur() as i32 / 2 - largeur as i32 / 2,
+        &mut donnees_rgb565,
     );
 
-    image.save("image_example.png").unwrap();
+    let couleur = (0, 0, 0);
+    let texte_a_afficher = Local::now()
+        .format_localized("%e %B", Locale::fr_FR)
+        .to_string();
+    let (glyphes, hauteur, largeur, _y_min) =
+        creer_glyphe_texte(&police, taille_police, &texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as i32 / 2 - hauteur as i32 / 2,
+        Wepd7In5BV2::largeur() as i32 / 2 - largeur as i32 / 2,
+        &mut donnees_rgb565,
+    );
 
-    let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
+    let texte_a_afficher = Local::now()
+        .format_localized("%R", Locale::fr_FR)
+        .to_string();
+    let (glyphes, hauteur, largeur, _y_min) =
+        creer_glyphe_texte(&police, taille_police, &texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as i32 * 4 / 5 - hauteur as i32 / 2,
+        Wepd7In5BV2::largeur() as i32 / 2 - largeur as i32 / 2,
+        &mut donnees_rgb565,
+    );
 
-    if ecran.is_some() {
-        log::info!("Initialiser");
-        ecran.as_mut().unwrap().initialiser().await?;
-        ecran.as_mut().unwrap().effacer_memoire_tampon()?;
-        ecran
-            .as_mut()
-            .unwrap()
-            .sauvegarder_image_memoire_tampon(&donnees)?;
+    Ok(donnees_rgb565)
+}
+
+async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
+    // Mesurer la luminosité
+    let luminosite_lux;
+    if capteur_luminosite.is_some() {
+        let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
+
+        match capteur_luminosite.demarrer().await {
+            Ok(_) => {}
+            Err(err) => {
+                log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
+            }
+        }
+
+        match capteur_luminosite.lire_luminosite_lux().await {
+            Ok(valeur) => {
+                log::info!("Luminosité mesurée avant configuration automatique {valeur} lux")
+            }
+            Err(err) => {
+                log::error!(
+                    "Erreur lors de lecture de luminosité avant configuration automatique {err}"
+                );
+            }
+        }
+
+        log::info!(
+            "Configuration avant configuration automatique gain : {:?} temps intégration : {:?}",
+            capteur_luminosite.gain(),
+            capteur_luminosite.temps_integration()
+        );
+        match capteur_luminosite.configurer_automatiquement().await {
+            Ok(_) => log::info!(
+                "Configuration : {:?} temps intégration : {:?}",
+                capteur_luminosite.gain(),
+                capteur_luminosite.temps_integration()
+            ),
+            Err(err) => log::error!(
+                "Erreur lors de la configuration automatique du capteur de luminosité {err}"
+            ),
+        }
+
+        match capteur_luminosite.lire_luminosite_lux().await {
+            Ok(valeur) => {
+                luminosite_lux = Some(valeur);
+                log::info!("Luminosité mesurée {valeur} lux")
+            }
+            Err(err) => {
+                log::error!("Erreur lors de lecture de luminosité {err}");
+                luminosite_lux = None;
+            }
+        }
+
+        match capteur_luminosite.arrêter().await {
+            Ok(_) => {}
+            Err(err) => {
+                log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")
+            }
+        }
+    } else {
+        luminosite_lux = None;
     }
+    luminosite_lux
+}
 
-    if ecran.is_some() {
-        log::info!("Afficher l'image");
-        ecran.as_mut().unwrap().mettre_a_jour().await?;
-    }
-    Ok(())
+fn afficher_valeurs_capteurs(
+    luminosite_lux: String,
+) -> Result<Vec<u16>, Box<dyn std::error::Error>> {
+    log::info!("Afficher la luminosité");
+    let couleur = (0, 0, 0);
+    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
+    let police = Font::try_from_bytes(fichier_police).unwrap();
+    let taille_police = Scale::uniform(60.);
+
+    let mut donnees_rgb565: Vec<u16> =
+        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
+
+    let texte_a_afficher = format!("Luminosité: {luminosite_lux} lux");
+
+    let (glyphes, hauteur, largeur, _y_min) =
+        creer_glyphe_texte(&police, taille_police, &texte_a_afficher);
+    dessiner_glpyhe(
+        glyphes,
+        couleur,
+        Wepd7In5BV2::hauteur() as i32 / 2 - hauteur as i32 / 2,
+        Wepd7In5BV2::largeur() as i32 / 2 - largeur as i32 / 2,
+        &mut donnees_rgb565,
+    );
+
+    Ok(donnees_rgb565)
 }
 
 fn creer_glyphe_texte<'a>(
     police: &'a Font,
     taille_police: Scale,
-    texte: String,
-) -> (Vec<PositionedGlyph<'a>>, u32, u32) {
+    texte: &str,
+) -> (Vec<PositionedGlyph<'a>>, u32, u32, u32) {
     let v_metriques = police.v_metrics(taille_police);
+    let mut y_min = i32::MAX;
+    let mut y_max = i32::MIN;
 
     let glyphes: Vec<PositionedGlyph> = police
         .layout(&texte, taille_police, point(0., 0. + v_metriques.ascent))
         .collect();
 
-    let hauteur = (v_metriques.ascent - v_metriques.descent).ceil() as u32;
-    let largeur = {
-        let min_x = glyphes
-            .first()
-            .map(|g| g.pixel_bounding_box().unwrap().min.x)
-            .unwrap();
-        let max_x = glyphes
-            .last()
-            .map(|g| g.pixel_bounding_box().unwrap().max.x)
-            .unwrap();
-        (max_x - min_x) as u32
+    for glyphe in glyphes.iter() {
+        match glyphe.pixel_bounding_box() {
+            Some(pixel_bounding_box) => {
+                if y_min > pixel_bounding_box.min.y {
+                    y_min = pixel_bounding_box.min.y;
+                }
+                if y_max < pixel_bounding_box.max.y {
+                    y_max = pixel_bounding_box.max.y;
+                }
+            }
+            None => {}
+        }
+    }
+
+    // let hauteur = (v_metriques.ascent - v_metriques.descent).ceil() as u32;
+    let (hauteur, largeur) = match texte == "" {
+        true => (0, 0),
+        false => {
+            let largeur = {
+                let min_x = glyphes
+                    .first()
+                    .map(|g| g.pixel_bounding_box().unwrap().min.x)
+                    .unwrap();
+                let max_x = glyphes
+                    .last()
+                    .map(|g| g.pixel_bounding_box().unwrap().max.x)
+                    .unwrap();
+                (max_x - min_x) as u32
+            };
+            ((y_max - y_min) as u32, largeur)
+        }
     };
-    (glyphes, hauteur, largeur)
+
+    (glyphes, hauteur, largeur, y_min as u32)
 }
 
 fn dessiner_glpyhe(
     glyphes: Vec<PositionedGlyph>,
     couleur: (u8, u8, u8),
-    hauteur: u32,
-    largeur: u32,
+    hauteur: i32,
+    largeur: i32,
     donnees_rgb565: &mut [u16],
 ) {
     let couleur_pixel_565 = convertir_rgb_888_en_reg_565(couleur);
@@ -234,6 +380,51 @@ fn dessiner_glpyhe(
     }
 }
 
+pub async fn afficher_image_rusttype(
+    ecran: &mut Option<Wepd7In5BV2>,
+    donnees_rgb565: Vec<u16>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Uniquement si les journaux d'informations ou plus détaillés sont activés
+    if log_enabled!(Info) {
+        let image = ImageBuffer::from_fn(
+            Wepd7In5BV2::largeur() as u32,
+            Wepd7In5BV2::hauteur() as u32,
+            |x, y| {
+                let pixel = donnees_rgb565[(y * Wepd7In5BV2::largeur() as u32 + x) as usize];
+
+                let bleu = ((pixel & 0x001F) << 3) as u8;
+                let vert = ((pixel & 0x07E0) >> 3) as u8;
+                let rouge = ((pixel & 0xF800) >> 8) as u8;
+
+                image::Rgb::<u8>([rouge, vert, bleu])
+            },
+        );
+
+        let repertoire_temporaire = env::temp_dir();
+        image
+            .save(repertoire_temporaire.join("ecran_afficher_temperature.png"))
+            .unwrap();
+    }
+
+    let donnees = convertir_vec_u16_vers_vec_u8(&donnees_rgb565);
+
+    if ecran.is_some() {
+        log::info!("Initialiser");
+        ecran.as_mut().unwrap().initialiser().await?;
+        ecran.as_mut().unwrap().effacer_memoire_tampon()?;
+        ecran
+            .as_mut()
+            .unwrap()
+            .sauvegarder_image_memoire_tampon(&donnees)?;
+    }
+
+    if ecran.is_some() {
+        log::info!("Afficher l'image");
+        ecran.as_mut().unwrap().mettre_a_jour().await?;
+    }
+    Ok(())
+}
+
 fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
     let rgb_565 = (((couleur.0 & 0b11111000) as u16) << 8)
         + ((couleur.1 & 0b11111100) << 3) as u16
@@ -241,160 +432,15 @@ fn convertir_rgb_888_en_reg_565(couleur: (u8, u8, u8)) -> u16 {
     rgb_565
 }
 
-fn afficher_jour() -> Result<Vec<u16>, Box<dyn std::error::Error>> {
-    log::info!("Afficher le jour courant");
-    let couleur = (255, 0, 0);
-    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
-    let police = Font::try_from_bytes(fichier_police).unwrap();
-    let taille_police = Scale::uniform(140.);
-
-    let mut donnees_rgb565: Vec<u16> =
-        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
-
-    // Jour
-    let texte_a_afficher = &Local::now()
-        .format_localized("%A", Locale::fr_FR)
-        .to_string();
-    let mut texte_a_afficher_characteres: Vec<char> = texte_a_afficher.chars().collect();
-    texte_a_afficher_characteres[0] = texte_a_afficher_characteres[0]
-        .to_uppercase()
-        .nth(0)
-        .unwrap();
-    let texte_a_afficher: String = texte_a_afficher_characteres.into_iter().collect();
-
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
-
-    dessiner_glpyhe(
-        glyphes,
-        couleur,
-        Wepd7In5BV2::hauteur() as u32 / 5 - hauteur / 2,
-        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
-        &mut donnees_rgb565,
-    );
-
-    let couleur = (0, 0, 0);
-    let texte_a_afficher = Local::now()
-        .format_localized("%e %B", Locale::fr_FR)
-        .to_string();
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
-    dessiner_glpyhe(
-        glyphes,
-        couleur,
-        Wepd7In5BV2::hauteur() as u32 / 2 - hauteur / 2,
-        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
-        &mut donnees_rgb565,
-    );
-
-    let texte_a_afficher = Local::now()
-        .format_localized("%R", Locale::fr_FR)
-        .to_string();
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
-    dessiner_glpyhe(
-        glyphes,
-        couleur,
-        Wepd7In5BV2::hauteur() as u32 * 4 / 5 - hauteur / 2,
-        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
-        &mut donnees_rgb565,
-    );
-
-    Ok(donnees_rgb565)
-}
-
-async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f64> {
-    // Mesurer la luminosité
-    let luminosite_lux;
-    if capteur_luminosite.is_some() {
-        let capteur_luminosite = capteur_luminosite.as_mut().unwrap();
-
-        match capteur_luminosite.demarrer() {
-            Ok(_) => {}
-            Err(err) => {
-                log::error!("Erreur lors du démarrage du capteur de luminosité {err}")
-            }
-        }
-
-        match capteur_luminosite.lire_luminosite_lux().await {
-            Ok(valeur) => {
-                log::info!("Luminosité mesurée avant configuration automatique {valeur} lux")
-            }
-            Err(err) => {
-                log::error!(
-                    "Erreur lors de lecture de luminosité avant configuration automatique {err}"
-                );
-            }
-        }
-
-        log::info!(
-            "Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",
-            capteur_luminosite.gain(),
-            capteur_luminosite.temps_integration()
-        );
-        match capteur_luminosite.configurer_automatiquement().await {
-            Ok(_) => log::info!(
-                "Configuration : {:?} temps intégration : {:?}",
-                capteur_luminosite.gain(),
-                capteur_luminosite.temps_integration()
-            ),
-            Err(err) => log::error!(
-                "Erreur lors de la configuration automatique du capteur de luminosité {err}"
-            ),
-        }
-
-        match capteur_luminosite.lire_luminosite_lux().await {
-            Ok(valeur) => {
-                luminosite_lux = Some(valeur);
-                log::info!("Luminosité mesurée {valeur} lux")
-            }
-            Err(err) => {
-                log::error!("Erreur lors de lecture de luminosité {err}");
-                luminosite_lux = None;
-            }
-        }
-
-        match capteur_luminosite.arrêter() {
-            Ok(_) => {}
-            Err(err) => {
-                log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")
-            }
-        }
-    } else {
-        luminosite_lux = None;
-    }
-    luminosite_lux
-}
-
-fn afficher_valeurs_capteurs(
-    luminosite_lux: String,
-) -> Result<Vec<u16>, Box<dyn std::error::Error>> {
-    log::info!("Afficher la luminosité");
-    let couleur = (0, 0, 0);
-    let fichier_police = &fs::read("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf").unwrap();
-    let police = Font::try_from_bytes(fichier_police).unwrap();
-    let taille_police = Scale::uniform(60.);
-
-    let mut donnees_rgb565: Vec<u16> =
-        vec![65535; Wepd7In5BV2::largeur() as usize * Wepd7In5BV2::hauteur() as usize];
-
-    let texte_a_afficher = format!("Luminosité: {luminosite_lux} lux");
-
-    let (glyphes, hauteur, largeur) = creer_glyphe_texte(&police, taille_police, texte_a_afficher);
-    dessiner_glpyhe(
-        glyphes,
-        couleur,
-        Wepd7In5BV2::hauteur() as u32 / 2 - hauteur / 2,
-        Wepd7In5BV2::largeur() as u32 / 2 - largeur / 2,
-        &mut donnees_rgb565,
-    );
-
-    Ok(donnees_rgb565)
-}
-
-pub fn convertir_vec_u16_vers_vec_u8(input: &[u16]) -> Vec<u8> {
+fn convertir_vec_u16_vers_vec_u8(input: &[u16]) -> Vec<u8> {
+    let big_endian = cfg!(target_endian = "big");
     let mut bytes = vec![0; 2 * input.len()];
-
     let mut cpt = 0;
     for value in input {
-        let pixel = &value.to_le_bytes();
+        let pixel = match big_endian {
+            true => value.to_be_bytes(),
+            false => value.to_le_bytes(),
+        };
         bytes[cpt] = pixel[0];
         bytes[cpt + 1] = pixel[1];
         cpt = cpt + 2;

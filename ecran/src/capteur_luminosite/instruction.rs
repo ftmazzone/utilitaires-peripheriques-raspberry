@@ -83,6 +83,16 @@ impl Gain {
         }
     }
 
+    pub(crate) fn determiner(adresse: u8) -> Gain {
+        match adresse {
+            0x00 => Gain::AlsGain1,
+            0x01 => Gain::AlsGain2,
+            0x02 => Gain::AlsGain1_8,
+            0x03 => Gain::AlsGain1_4,
+            _ => Gain::AlsGain1,
+        }
+    }
+
     pub(crate) fn suivant(&self) -> Self {
         match &self {
             Gain::AlsGain1 => Gain::AlsGain2,
@@ -113,6 +123,18 @@ impl TempsIntegration {
             TempsIntegration::AlsIt200MS => 200.,
             TempsIntegration::AlsIt400MS => 400.,
             TempsIntegration::AlsIt800MS => 800.,
+        }
+    }
+
+    pub(crate) fn determiner(adresse: u8) -> TempsIntegration {
+        match adresse {
+            0x0C => TempsIntegration::AlsIt25MS,
+            0x08 => TempsIntegration::AlsIt50MS,
+            0x00 => TempsIntegration::AlsIt100MS,
+            0x01 => TempsIntegration::AlsIt200MS,
+            0x02 => TempsIntegration::AlsIt400MS,
+            0x03 => TempsIntegration::AlsIt800MS,
+            _ => TempsIntegration::AlsIt100MS,
         }
     }
 
@@ -148,6 +170,16 @@ impl Persistance {
             Persistance::AlsPers8 => 0x03,
         }
     }
+
+    pub(crate) fn determiner(adresse: u8) -> Persistance {
+        match adresse {
+            0x00 => Persistance::AlsPers1,
+            0x01 => Persistance::AlsPers2,
+            0x02 => Persistance::AlsPers4,
+            0x03 => Persistance::AlsPers8,
+            _ => Persistance::AlsPers1,
+        }
+    }
 }
 
 impl ModeEconomieEnergie {
@@ -157,6 +189,16 @@ impl ModeEconomieEnergie {
             ModeEconomieEnergie::AlsPowerSaveMode2 => 0x01,
             ModeEconomieEnergie::AlsPowerSaveMode3 => 0x02,
             ModeEconomieEnergie::AlsPowerSaveMode4 => 0x03,
+        }
+    }
+
+    pub(crate) fn determiner(adresse: u8) -> ModeEconomieEnergie {
+        match adresse {
+            0x00 => ModeEconomieEnergie::AlsPowerSaveMode1,
+            0x01 => ModeEconomieEnergie::AlsPowerSaveMode2,
+            0x02 => ModeEconomieEnergie::AlsPowerSaveMode3,
+            0x03 => ModeEconomieEnergie::AlsPowerSaveMode4,
+            _ => ModeEconomieEnergie::AlsPowerSaveMode1,
         }
     }
 }
