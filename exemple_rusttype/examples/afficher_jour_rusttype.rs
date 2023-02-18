@@ -232,7 +232,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
         }
 
         log::info!(
-            "Configuration avant configuration autmatique gain : {:?} temps intégration : {:?}",
+            "Configuration avant configuration automatique gain : {:?} temps intégration : {:?}",
             capteur_luminosite.gain(),
             capteur_luminosite.temps_integration()
         );
