@@ -46,7 +46,17 @@ impl Veml7700 {
 
     fn lire_configuration_capteur(
         &mut self,
-    ) -> Result<(u8, u8, u8, u8, u8, u8), rppal::i2c::Error> {
+    ) -> Result<
+        (
+            u16,
+            Gain,
+            TempsIntegration,
+            Persistance,
+            bool,
+            ModeEconomieEnergie,
+        ),
+        rppal::i2c::Error,
+    > {
         let mut tampon = [0u8; 2];
         self.i2c
             .block_read(Registre::AlsConfig.adresse(), &mut tampon)?;
@@ -55,35 +65,43 @@ impl Veml7700 {
             false => u16::from_le_bytes(tampon),
         };
 
-        let gain: u16 = (configuration >> 11) & 31;
-        let integration: u16 = (configuration >> 6) & 31;
-        let persistance: u16 = (configuration >> 4) & 3;
-        let interruption_active: u16 = (configuration >> 3) & 1;
-        let mode_economie_energie: u16 = (configuration >> 1) & 3;
+        let gain = Gain::determiner(((configuration >> 11) & 31) as u8);
+        let temps_integration = TempsIntegration::determiner(((configuration >> 6) & 31) as u8);
+        let persistance = Persistance::determiner(((configuration >> 4) & 3) as u8);
+        let interruption_active = ((configuration >> 3) & 1) == 0;
+        let mode_economie_energie =
+            ModeEconomieEnergie::determiner(((configuration >> 1) & 3) as u8);
         println!(
-            "lire_configuration_capteur gaon {} integration {} persistance{} interruption_active{} mode_economie_energie{}",
-            gain as u8,
-            integration as u8,
-            persistance as u8,
-            interruption_active as u8,
-            mode_economie_energie as u8,
+            "lire_configuration_capteur gain {:?} integration {:?} persistance{:?} interruption_active{:?} mode_economie_energie{:?}",
+            gain ,
+            temps_integration,
+            persistance ,
+            interruption_active ,
+            mode_economie_energie,
         );
         Ok((
-            configuration as u8,
-            gain as u8,
-            integration as u8,
-            persistance as u8,
-            interruption_active as u8,
-            mode_economie_energie as u8,
+            configuration,
+            gain,
+            temps_integration,
+            persistance,
+            interruption_active,
+            mode_economie_energie,
         ))
     }
 
-    pub fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
+    pub async fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
         if !self.configuration_modifiee {
             return Ok(());
         }
 
-        self.lire_configuration_capteur()?;
+        let (
+            _configuration_precedente,
+            _gain_precedent,
+            temps_integration_precedent,
+            _persistance_precedente,
+            _interruption_active_precedente,
+            _mode_economie_energie_precedent,
+        ) = self.lire_configuration_capteur()?;
 
         let configuration = (self.gain.adresse() as u16) << 11
             | (self.temps_integration.adresse() as u16) << 6
@@ -99,6 +117,13 @@ impl Veml7700 {
             .block_write(Registre::AlsConfig as u8, &configuration)?;
         self.configuration_modifiee = false;
         self.derniere_lecture_donnees = SystemTime::now();
+
+        if temps_integration_precedent != self.temps_integration {
+            time::sleep(time::Duration::from_millis(
+                temps_integration_precedent.valeur() as u64,
+            ))
+            .await;
+        }
 
         println!("configuration_capteur {:?}", configuration);
         Ok(())
@@ -147,15 +172,15 @@ impl Veml7700 {
         }
     }
 
-    pub fn demarrer(&mut self) -> Result<(), rppal::i2c::Error> {
+    pub async fn demarrer(&mut self) -> Result<(), rppal::i2c::Error> {
         self.mode_economie_energie = ModeEconomieEnergie::AlsPowerSaveMode1;
-        self.configurer_capteur()?;
+        self.configurer_capteur().await?;
         Ok(())
     }
 
-    pub fn arrêter(&mut self) -> Result<(), rppal::i2c::Error> {
+    pub async fn arrêter(&mut self) -> Result<(), rppal::i2c::Error> {
         self.mode_economie_energie = ModeEconomieEnergie::AlsPowerSaveMode2;
-        self.configurer_capteur()?;
+        self.configurer_capteur().await?;
         Ok(())
     }
 
@@ -178,7 +203,7 @@ impl Veml7700 {
     }
 
     pub async fn lire_luminosite(&mut self) -> Result<u16, rppal::i2c::Error> {
-        self.configurer_capteur()?;
+        self.configurer_capteur().await?;
         self.attendre_avant_prochaine_lecture().await;
 
         let mut tampon = [0u8; 2];
@@ -191,7 +216,7 @@ impl Veml7700 {
     }
 
     pub async fn lire_luminosite_blanche(&mut self) -> Result<u16, rppal::i2c::Error> {
-        self.configurer_capteur()?;
+        self.configurer_capteur().await?;
         self.attendre_avant_prochaine_lecture().await;
 
         let mut tampon = [0u8; 2];
