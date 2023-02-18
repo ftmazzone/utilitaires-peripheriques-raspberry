@@ -1,4 +1,4 @@
-// Tester cargo run --example tester_ecran
+// Tester cargo run --example afficher_jour
 
 use std::{
     env,
