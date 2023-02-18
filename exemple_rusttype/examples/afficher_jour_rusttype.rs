@@ -87,6 +87,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let resultat = timeout(tokio::time::Duration::from_secs(10), rx.recv_async()).await;
 
+      let test_luminosite =  lire_luminosite(&mut capteur_luminosite).await;
+      println!("{:?}",test_luminosite);
+
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
             let luminosite_lux = format!(

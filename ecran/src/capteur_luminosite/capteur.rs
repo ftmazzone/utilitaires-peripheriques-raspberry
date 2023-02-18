@@ -44,7 +44,7 @@ impl Veml7700 {
         Ok(vmel7700)
     }
 
-    fn lire_configuration_capteur(&mut self) -> Result<(u16), rppal::i2c::Error> {
+    fn lire_configuration_capteur(&mut self) -> Result<u16, rppal::i2c::Error> {
         let mut tampon = [0u8; 2];
         self.i2c
             .block_read(Registre::AlsConfig.adresse(), &mut tampon)?;
@@ -52,7 +52,10 @@ impl Veml7700 {
             true => Ok(u16::from_be_bytes(tampon)),
             false => Ok(u16::from_le_bytes(tampon)),
         };
-        println!("lire_configuration_capteur {:?} {:?}", tampon, configuration);
+        println!(
+            "lire_configuration_capteur {:?} {:?}",
+            tampon, configuration
+        );
         configuration
     }
 
