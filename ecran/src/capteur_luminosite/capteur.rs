@@ -71,14 +71,6 @@ impl Veml7700 {
         let interruption_active = ((configuration >> 3) & 1) == 0;
         let mode_economie_energie =
             ModeEconomieEnergie::determiner(((configuration >> 1) & 3) as u8);
-        println!(
-            "lire_configuration_capteur gain {:?} integration {:?} persistance{:?} interruption_active{:?} mode_economie_energie{:?}",
-            gain ,
-            temps_integration,
-            persistance ,
-            interruption_active ,
-            mode_economie_energie,
-        );
         Ok((
             configuration,
             gain,
@@ -124,8 +116,6 @@ impl Veml7700 {
             ))
             .await;
         }
-
-        println!("configuration_capteur {:?}", configuration);
         Ok(())
     }
 

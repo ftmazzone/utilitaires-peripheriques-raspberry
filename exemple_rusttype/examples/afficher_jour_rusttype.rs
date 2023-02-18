@@ -87,9 +87,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let resultat = timeout(tokio::time::Duration::from_secs(10), rx.recv_async()).await;
 
-      let test_luminosite =  lire_luminosite(&mut capteur_luminosite).await;
-      println!("{:?}",test_luminosite);
-
         // Afficher l'image toutes les dix minutes ou la luminosité en lux mesurée par le capteur
         if mouvement_detecte && (Local::now().minute() % 5) == 0 && Local::now().second() < 10 {
             let luminosite_lux = format!(
@@ -261,7 +258,7 @@ async fn lire_luminosite(capteur_luminosite: &mut Option<Veml7700>) -> Option<f6
             }
         }
 
-        match capteur_luminosite.arrêter() .await{
+        match capteur_luminosite.arrêter().await {
             Ok(_) => {}
             Err(err) => {
                 log::error!("Erreur lors de l'arrêt du capteur de luminosité {err}")
