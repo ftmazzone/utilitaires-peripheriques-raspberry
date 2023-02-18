@@ -44,19 +44,38 @@ impl Veml7700 {
         Ok(vmel7700)
     }
 
-    fn lire_configuration_capteur(&mut self) -> Result<u16, rppal::i2c::Error> {
+    fn lire_configuration_capteur(
+        &mut self,
+    ) -> Result<(u8, u8, u8, u8, u8, u8), rppal::i2c::Error> {
         let mut tampon = [0u8; 2];
         self.i2c
             .block_read(Registre::AlsConfig.adresse(), &mut tampon)?;
         let configuration = match self.big_endian {
-            true => Ok(u16::from_be_bytes(tampon)),
-            false => Ok(u16::from_le_bytes(tampon)),
+            true => u16::from_be_bytes(tampon),
+            false => u16::from_le_bytes(tampon),
         };
+
+        let gain: u16 = (configuration >> 11) & 31;
+        let integration: u16 = (configuration >> 6) & 31;
+        let persistance: u16 = (configuration >> 4) & 3;
+        let interruption_active: u16 = (configuration >> 3) & 1;
+        let mode_economie_energie: u16 = (configuration >> 1) & 3;
         println!(
-            "lire_configuration_capteur {:?} {:?}",
-            tampon, configuration
+            "lire_configuration_capteur gaon {} integration {} persistance{} interruption_active{} mode_economie_energie{}",
+            gain as u8,
+            integration as u8,
+            persistance as u8,
+            interruption_active as u8,
+            mode_economie_energie as u8,
         );
-        configuration
+        Ok((
+            configuration as u8,
+            gain as u8,
+            integration as u8,
+            persistance as u8,
+            interruption_active as u8,
+            mode_economie_energie as u8,
+        ))
     }
 
     pub fn configurer_capteur(&mut self) -> Result<(), rppal::i2c::Error> {
