@@ -112,7 +112,7 @@ impl Veml7700 {
 
         if temps_integration_precedent != self.temps_integration {
             time::sleep(time::Duration::from_millis(
-                temps_integration_precedent.valeur() as u64,
+                2 * temps_integration_precedent.valeur() as u64,
             ))
             .await;
         }
