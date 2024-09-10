@@ -6,3 +6,7 @@ pub mod eclairage;
 pub mod detecteur;
 #[cfg(feature = "capteur_luminosite")]
 pub mod capteur_luminosite;
+#[cfg(feature = "peripherique_usb")]
+pub mod peripherique_usb;
+#[cfg(feature = "fournisseur_localisation")]
+pub mod fournisseur_localisation;

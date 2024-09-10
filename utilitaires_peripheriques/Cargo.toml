@@ -5,12 +5,14 @@ edition = "2021"
 
 [dependencies]
 flume = { version = "0", optional = true  }
-rppal = { version = "0" }
 log = "0"
+rppal = { version = "0" }
 tokio = { version = "1", features = [] }
 
 [features]
-ecran = []
-eclairage = []
-detecteur = ["dep:flume"]
 capteur_luminosite = []
+detecteur = ["dep:flume"]
+eclairage = []
+ecran = []
+fournisseur_localisation = []
+peripherique_usb = []
