@@ -10,8 +10,8 @@ use std::{
 };
 
 use chrono::{Local, Locale, Timelike};
-use ecran::capteur_luminosite::capteur::Veml7700;
-use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
+use utilitaires::capteur_luminosite::capteur::Veml7700;
+use utilitaires::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use image::ImageBuffer;
 use log::log_enabled;
 use log::Level::Info;

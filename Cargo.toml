@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "ecran",
+    "utilitaires",
     "exemple_cairo",
     "exemple_rusttype"
 ]
