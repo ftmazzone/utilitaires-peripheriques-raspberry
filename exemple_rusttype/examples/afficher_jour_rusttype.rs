@@ -11,7 +11,7 @@ use std::{
 
 use chrono::{Local, Locale, Timelike};
 use utilitaires_peripheriques::capteur_luminosite::capteur::Veml7700;
-use utilitaires_peripheriques::{detecteur_mouvement::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
+use utilitaires_peripheriques::{detecteur_mouvement::DetecteurMouvement, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use image::ImageBuffer;
 use log::log_enabled;
 use log::Level::Info;
@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(ecran) => {
                 log::info!("Configurer l'éclairage");
                 let eclairage = Eclairage::new(21);
-                let mut detecteur_mouvement = Detecteur::new(16, tx);
+                let mut detecteur_mouvement = DetecteurMouvement::new(16, tx);
                 detecteur_mouvement.demarrer().await;
 
                 (Some(ecran), Some(eclairage), Some(detecteur_mouvement))

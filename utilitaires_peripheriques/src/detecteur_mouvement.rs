@@ -1,11 +1,11 @@
 use flume::Sender;
 use rppal::gpio::{Event, Gpio, InputPin, Trigger};
-pub struct Detecteur {
+pub struct DetecteurMouvement {
     pin: Option<InputPin>,
     tx: Sender<bool>,
 }
 
-impl Detecteur {
+impl DetecteurMouvement {
     pub fn new(pin: u8, tx: Sender<bool>) -> Self {
         let gpio = Gpio::new().expect("Gpio new");
         let pin = gpio.get(pin).expect("gpio get");
