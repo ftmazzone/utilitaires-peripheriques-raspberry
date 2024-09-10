@@ -9,7 +9,7 @@ env_logger = "0"
 chrono = { version = "0", features = ["unstable-locales"] }
 
 [dependencies]
-utilitaires = { path = "../utilitaires" }
+utilitaires_peripheriques = { path = "../utilitaires_peripheriques" }
 rppal = { version = "0" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal"] }
 log = "0"

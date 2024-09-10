@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "utilitaires",
+    "utilitaires_peripheriques",
     "exemple_cairo",
     "exemple_rusttype"
 ]
