@@ -16,7 +16,7 @@ serde_json = {version = "1", optional = true }
 
 [features]
 capteur_luminosite = []
-detecteur = ["dep:flume"]
+detecteur_mouvement = ["dep:flume"]
 eclairage = []
 ecran = []
 fournisseur_localisation = ["dep:chrono", "dep:chrono-tz","dep:rust_decimal", "dep:serde", "dep:serde_json","dep:tokio","tokio/net"]

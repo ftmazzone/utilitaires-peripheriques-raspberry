@@ -2,8 +2,8 @@
 pub mod ecran;
 #[cfg(feature = "eclairage")]
 pub mod eclairage;
-#[cfg(feature = "detecteur")]
-pub mod detecteur;
+#[cfg(feature = "detecteur_mouvement")]
+pub mod detecteur_mouvement;
 #[cfg(feature = "capteur_luminosite")]
 pub mod capteur_luminosite;
 #[cfg(feature = "peripherique_usb")]

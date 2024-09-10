@@ -11,7 +11,7 @@ use std::{
 
 use chrono::{Local, Locale, Timelike};
 use utilitaires_peripheriques::capteur_luminosite::capteur::Veml7700;
-use utilitaires_peripheriques::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
+use utilitaires_peripheriques::{detecteur_mouvement::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use image::ImageBuffer;
 use log::log_enabled;
 use log::Level::Info;
