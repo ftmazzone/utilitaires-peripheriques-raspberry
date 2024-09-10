@@ -3,7 +3,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use afficher_temperature_utilitaires::peripherique_usb::PeripheriqueUsb;
+use crate::peripherique_usb::PeripheriqueUsb;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;

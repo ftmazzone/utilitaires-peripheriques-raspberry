@@ -4,10 +4,13 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
+chrono = { version = "0", features = ["serde"], optional = true  }
+chrono-tz = {version = "0", optional = true }
 flume = { version = "0", optional = true  }
 log = "0"
 rppal = { version = "0" }
-tokio = { version = "1", features = [] }
+tokio = { version = "1", features = [], optional = true }
+rust_decimal = { version = "1",optional = true }
 serde = { version = "1", features = ["derive"], optional = true  }
 serde_json = {version = "1", optional = true }
 
@@ -16,5 +19,5 @@ capteur_luminosite = []
 detecteur = ["dep:flume"]
 eclairage = []
 ecran = []
-fournisseur_localisation = ["dep:serde", "dep:serde_json"]
+fournisseur_localisation = ["dep:chrono", "dep:chrono-tz","dep:rust_decimal", "dep:serde", "dep:serde_json","dep:tokio","tokio/net"]
 peripherique_usb = []
