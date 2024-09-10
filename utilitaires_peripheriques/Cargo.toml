@@ -8,11 +8,13 @@ flume = { version = "0", optional = true  }
 log = "0"
 rppal = { version = "0" }
 tokio = { version = "1", features = [] }
+serde = { version = "1", features = ["derive"], optional = true  }
+serde_json = {version = "1", optional = true }
 
 [features]
 capteur_luminosite = []
 detecteur = ["dep:flume"]
 eclairage = []
 ecran = []
-fournisseur_localisation = []
+fournisseur_localisation = ["dep:serde", "dep:serde_json"]
 peripherique_usb = []
