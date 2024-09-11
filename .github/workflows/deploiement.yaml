@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Installation des dépendances requises
         run: sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
         id: registry-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.CARGO_HOME }}
           key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock
@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-registry-Cargo.lock
       - name: Rechercher si le répertoire de construction est en mémoire temporaire
         id: target-cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./target
           key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock
@@ -41,7 +41,7 @@ jobs:
           rustup --version
           cargo --version
           cargo build --release --example afficher_jour
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: gestion_ecran_eink_exemple
           path: ./target/release/examples/afficher_jour
@@ -55,10 +55,10 @@ jobs:
         COMPILATEUR_CROISE: cross-gcc-10.3.0-pi_0-1.tar.gz
         ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bullseye/GCC%2010.3.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-10.3.0-pi_0-1.tar.gz/download -O cross-gcc-10.3.0-pi_0-1.tar.gz
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         - name: Rechercher si le compilateur croisé pour Raspberry Pi Zero est en mémoire temporaire
           id: compilateur-croise
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             path: ./${{ env.COMPILATEUR_CROISE }}
             key: ${{ runner.os }}-${{ hashFiles(env.COMPILATEUR_CROISE) }}-${{ env.COMPILATEUR_CROISE }}
@@ -74,7 +74,7 @@ jobs:
             mv .cargo/config-compilation-croisee .cargo/config
         - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
           id: registry-cargo
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             path: ${{ env.CARGO_HOME }}
             key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock-armv6
@@ -82,7 +82,7 @@ jobs:
               ${{ runner.os }}-registry-Cargo.lock
         - name: Rechercher si le répertoire de construction est en mémoire temporaire
           id: target-cargo
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             path: ./target
             key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock-armv6
@@ -93,7 +93,7 @@ jobs:
             rustup --version
             cargo --version
             cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype
-        - uses: actions/upload-artifact@v3
+        - uses: actions/upload-artifact@v4
           with:
             name: afficher_jour_rusttype_armv6
             path: ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype

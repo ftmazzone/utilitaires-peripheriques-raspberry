@@ -10,7 +10,7 @@ rusttype= "0"
 image = { version = "0", default-features = false, features = ["png"] }
 
 [dependencies]
-ecran = { path = "../ecran" }
+utilitaires_peripheriques = { path = "../utilitaires_peripheriques",features=["ecran","capteur_luminosite","detecteur_mouvement","eclairage","peripherique_usb","fournisseur_localisation"] }
 rppal = { version = "0" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal"] }
 log = "0"

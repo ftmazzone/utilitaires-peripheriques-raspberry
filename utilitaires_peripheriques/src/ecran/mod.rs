@@ -5,5 +5,5 @@
 
 /// Liste des méthodes d'affichage de l'écran
 pub mod ecran;
-/// Liste des commanges de l'écran
+/// Liste des commandes de l'écran
 pub mod instruction;

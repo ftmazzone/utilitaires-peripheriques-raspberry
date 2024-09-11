@@ -1,0 +1,12 @@
+#[cfg(feature = "ecran")]
+pub mod ecran;
+#[cfg(feature = "eclairage")]
+pub mod eclairage;
+#[cfg(feature = "detecteur_mouvement")]
+pub mod detecteur_mouvement;
+#[cfg(feature = "capteur_luminosite")]
+pub mod capteur_luminosite;
+#[cfg(feature = "peripherique_usb")]
+pub mod peripherique_usb;
+#[cfg(feature = "fournisseur_localisation")]
+pub mod fournisseur_localisation;

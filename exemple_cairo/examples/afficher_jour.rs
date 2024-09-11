@@ -11,10 +11,12 @@ use std::{
 
 use cairo::{Context, Format, ImageSurface};
 use chrono::{Local, Locale, Timelike};
-use ecran::capteur_luminosite::capteur::Veml7700;
-use ecran::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
 use tokio::time::timeout;
+use utilitaires_peripheriques::{
+    capteur_luminosite::capteur::Veml7700, detecteur_mouvement::DetecteurMouvement, eclairage::Eclairage,
+    ecran::ecran::Wepd7In5BV2,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,7 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(ecran) => {
                 log::info!("Configurer l'éclairage");
                 let eclairage = Eclairage::new(21);
-                let mut detecteur_mouvement = Detecteur::new(16, tx);
+                let mut detecteur_mouvement = DetecteurMouvement::new(16, tx);
                 detecteur_mouvement.demarrer().await;
 
                 (Some(ecran), Some(eclairage), Some(detecteur_mouvement))

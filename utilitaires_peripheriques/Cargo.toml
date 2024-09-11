@@ -1,0 +1,23 @@
+[package]
+name = "utilitaires_peripheriques"
+version = "0.3.0"
+edition = "2021"
+
+[dependencies]
+chrono = { version = "0", features = ["serde"], optional = true  }
+chrono-tz = {version = "0", optional = true }
+flume = { version = "0", optional = true  }
+log = "0"
+rppal = { version = "0", optional = true }
+tokio = { version = "1", features = [], optional = true }
+rust_decimal = { version = "1",optional = true }
+serde = { version = "1", features = ["derive"], optional = true  }
+serde_json = {version = "1", optional = true }
+
+[features]
+capteur_luminosite = ["dep:rppal"]
+detecteur_mouvement = ["dep:flume","dep:rppal"]
+eclairage = ["dep:rppal"]
+ecran = ["dep:rppal"]
+fournisseur_localisation = ["dep:chrono", "dep:chrono-tz","dep:rust_decimal", "dep:serde", "dep:serde_json","dep:tokio","tokio/net"]
+peripherique_usb = []
