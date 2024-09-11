@@ -11,10 +11,12 @@ use std::{
 
 use cairo::{Context, Format, ImageSurface};
 use chrono::{Local, Locale, Timelike};
-use utilitaires::capteur_luminosite::capteur::Veml7700;
-use utilitaires::{detecteur::Detecteur, eclairage::Eclairage, ecran::ecran::Wepd7In5BV2};
 use rppal::spi::Bus;
 use tokio::time::timeout;
+use utilitaires_peripheriques::{
+    capteur_luminosite::capteur::Veml7700, detecteur::Detecteur, eclairage::Eclairage,
+    ecran::ecran::Wepd7In5BV2,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
