@@ -52,8 +52,8 @@ jobs:
       timeout-minutes: 10
       # if: github.ref == 'refs/heads/master'
       env:
-        COMPILATEUR_CROISE: cross-gcc-10.3.0-pi_0-1.tar.gz
-        ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bullseye/GCC%2010.3.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-10.3.0-pi_0-1.tar.gz/download -O cross-gcc-10.3.0-pi_0-1.tar.gz
+        COMPILATEUR_CROISE: cross-gcc-12.2.0-pi_0-1.tar.gz
+        ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bookworm/GCC%2012.2.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-12.2.0-pi_0-1.tar.gz/download -O cross-gcc-12.2.0-pi_0-1.tar.gz
       steps:
         - uses: actions/checkout@v4
         - name: Rechercher si le compilateur croisé pour Raspberry Pi Zero est en mémoire temporaire
@@ -64,12 +64,13 @@ jobs:
             key: ${{ runner.os }}-${{ hashFiles(env.COMPILATEUR_CROISE) }}-${{ env.COMPILATEUR_CROISE }}
         - name: Télécharger le compilateur croisé pour Raspberry Pi Zero
           if: steps.compilateur-croise.outputs.cache-hit != 'true'
-          run: wget $ADRESSE_COMPILATEUR_CROISE
+          run: |
+            wget $ADRESSE_COMPILATEUR_CROISE
+            git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git
         - name: Préparer le compilateur pour la compilation croisée ARMv6
           run: |
             sudo apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl
             rustup target add arm-unknown-linux-gnueabihf
-            git clone https://github.com/abhiTronix/raspberry-pi-cross-compilers.git
             tar -xf $COMPILATEUR_CROISE
             mv .cargo/config-compilation-croisee .cargo/config
         - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
