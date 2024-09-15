@@ -1,5 +1,5 @@
 [target.arm-unknown-linux-gnueabihf]
-linker = "./cross-pi-gcc-10.3.0-0/bin/arm-linux-gnueabihf-gcc"
+linker = "./cross-pi-gcc-12.2.0-0/bin/arm-linux-gnueabihf-gcc"
 rustflags = [
     "-C", "link-arg=-march=armv6",
     "-C","link-arg=-mfloat-abi=hard",
