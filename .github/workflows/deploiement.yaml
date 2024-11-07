@@ -118,10 +118,12 @@ jobs:
           run:  |
             rustup --version
             cargo --version
-            cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype
+            cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype --example determiner_localisation
         - uses: actions/upload-artifact@v4
           with:
             name: exemples_utilitaire_peripherique_armv6
-            path: ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+            path: |
+              ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+              ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
             retention-days: 1
             if-no-files-found: error
