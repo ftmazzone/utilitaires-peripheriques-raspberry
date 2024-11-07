@@ -3,5 +3,6 @@
 members = [
     "utilitaires_peripheriques",
     "exemple_cairo",
-    "exemple_rusttype"
+    "exemple_rusttype",
+    "exemple_utilitaire_peripheriques"
 ]

@@ -96,6 +96,24 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'determiner_localisation'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=determiner_localisation",
+                    "--package=exemples_utilitaire_peripheriques"
+                ],
+                "filter": {
+                    "name": "determiner_localisation",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }
