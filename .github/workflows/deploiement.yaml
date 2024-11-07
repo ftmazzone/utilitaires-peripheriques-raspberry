@@ -59,7 +59,7 @@ jobs:
       - name: Auditer les dépendances
         run: |
           cargo audit
-      - name: Signer les exécutables
+      - name: Attester l'origine des exécutables
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: |
@@ -138,7 +138,13 @@ jobs:
             cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype --example determiner_localisation
         - name: Auditer les dépendances
           run: |
-            cargo audit  
+            cargo audit
+        - name: Attester l'origine des exécutables
+          uses: actions/attest-build-provenance@v1
+          with:
+            subject-path: |
+              ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+              ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
         - uses: actions/upload-artifact@v4
           with:
             name: exemples_utilitaire_peripherique_armv6
