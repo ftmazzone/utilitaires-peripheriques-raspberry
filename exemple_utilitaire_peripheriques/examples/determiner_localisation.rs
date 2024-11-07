@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arret_demande_clone = arret_demande.clone();
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.unwrap();
-        log::info!("Lecture des températures : arrêt demandé");
+        log::info!("Lecture de la localisation : arrêt demandé");
         arret_demande_clone.store(true, Ordering::SeqCst);
     });
     let arret_demande_clone = arret_demande.clone();
