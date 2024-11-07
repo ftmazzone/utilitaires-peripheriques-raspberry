@@ -1,4 +1,4 @@
-name: Construction de l'exemple Gestion-Ecran-Eink
+name: Construction et test de la bibliothèque de gestion des utilitaires
 
 on:
   push:
@@ -84,22 +84,34 @@ jobs:
             rustup target add arm-unknown-linux-gnueabihf
             tar -xf $COMPILATEUR_CROISE
             mv .cargo/config-compilation-croisee .cargo/config
-        - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
-          id: registry-cargo
-          uses: actions/cache@v4
-          with:
-            path: ${{ env.CARGO_HOME }}
-            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock-armv6
-            restore-keys: |
-              ${{ runner.os }}-registry-Cargo.lock
-        - name: Rechercher si le répertoire de construction est en mémoire temporaire
-          id: target-cargo
-          uses: actions/cache@v4
-          with:
-            path: ./target
-            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock-armv6
-            restore-keys: |
-              ${{ runner.os }}-target-Cargo.lock
+      - name: Rechercher si le répertoire rustup est en mémoire temporaire
+        id: rustup
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.RUSTUP_HOME }}
+          key: ${{ runner.os }}-rustup-armv6-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rustup-armv6
+      - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
+        id: cargo
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CARGO_HOME }}
+          key: ${{ runner.os }}-cargo-armv6-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-armv6
+      - name: Rechercher si le répertoire de construction est en mémoire temporaire
+        id: target
+        uses: actions/cache@v4
+        with:
+          path: ./target
+          key: ${{ runner.os }}-target-armv6-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-target-armv6
+      - name: Installer rustup
+        if: steps.rustup.outputs.cache-hit != 'true'
+        run: |
+          wget -O - https://sh.rustup.rs | sh -s -- -y
         - name: Construire l'application
           run:  |
             rustup --version
