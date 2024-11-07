@@ -61,6 +61,7 @@ jobs:
         run: |
           cargo audit
       - name: Attester l'origine des exécutables
+        if: ${{ github.ref == 'refs/heads/master' }} 
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: |
@@ -137,6 +138,7 @@ jobs:
           run: |
             cargo audit
         - name: Attester l'origine des exécutables
+          if: ${{ github.ref == 'refs/heads/master' }} 
           uses: actions/attest-build-provenance@v1
           with:
             subject-path: |
