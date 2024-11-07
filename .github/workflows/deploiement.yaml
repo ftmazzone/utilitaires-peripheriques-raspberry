@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 0 15 * *'
 
+permissions:
+  id-token: write
+  contents: read
+  attestations: write
+
 env:
   BRANCHE_GIT: ${{ github.head_ref || github.ref_name }}
   CARGO_TERM_COLOR: always
@@ -17,10 +22,6 @@ jobs:
   construire:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      id-token: write
-      contents: read
-      attestations: write
     steps:
       - uses: actions/checkout@v4
       - name: Rechercher si le répertoire rustup est en mémoire temporaire
