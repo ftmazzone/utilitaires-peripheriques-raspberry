@@ -19,7 +19,7 @@ env:
   CARGO_HOME:  /tmp/cache/cargo
   RUSTUP_HOME: /tmp/cache/.rustup
 jobs:
-  construire:
+  construire-amd64:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
