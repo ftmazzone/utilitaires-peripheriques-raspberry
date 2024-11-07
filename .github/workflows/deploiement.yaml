@@ -63,8 +63,8 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: |
-            ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
-            ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
+            ./target/release/examples/afficher_jour
+            ./target/release/examples/determiner_localisation
       - uses: actions/upload-artifact@v4
         with:
           name: exemples_utilitaire_peripherique_amd64
