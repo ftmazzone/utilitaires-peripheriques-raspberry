@@ -2,12 +2,14 @@ use core::str;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::time::Duration;
 
 use crate::peripherique_usb::PeripheriqueUsb;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde::Serialize;
+use tokio::time::sleep;
 use tokio::{
     io::{self, Interest},
     net::TcpStream,
@@ -114,6 +116,8 @@ pub async fn verifier_localisation(
                                             phrase_tpv = Some(donnees_localisation_tpv);
                                             break;
                                         }
+                                    }else{
+                                        log::debug!("Trame non reconnue");
                                     }
                                 }
                                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -124,6 +128,9 @@ pub async fn verifier_localisation(
                                     break;
                                 }
                             }
+                        }else{
+                            log::debug!("Flux non lisible");
+                            sleep(Duration::from_millis(1000)).await;
                         }
 
                         if !message_initialisation_envoye && etat_flux.is_writable() {
