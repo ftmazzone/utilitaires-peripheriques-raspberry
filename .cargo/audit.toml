@@ -1,0 +1,4 @@
+[advisories]
+ignore = [
+    # "RUSTSEC-2024-0336" # 2024-10-31
+]

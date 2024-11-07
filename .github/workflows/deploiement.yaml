@@ -1,4 +1,4 @@
-name: Construction de l'exemple Gestion-Ecran-Eink
+name: Construction et test de la bibliothèque de gestion des utilitaires
 
 on:
   push:
@@ -8,43 +8,71 @@ on:
   schedule:
     - cron: '0 0 15 * *'
 
+permissions:
+  id-token: write
+  contents: read
+  attestations: write
+
 env:
+  BRANCHE_GIT: ${{ github.head_ref || github.ref_name }}
   CARGO_TERM_COLOR: always
   CARGO_HOME:  /tmp/cache/cargo
-  BRANCHE_GIT: ${{ github.head_ref || github.ref_name }}
+  RUSTUP_HOME: /tmp/cache/.rustup
 jobs:
-  construire:
+  construire-amd64:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Installation des dépendances requises
-        run: sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+      - name: Rechercher si le répertoire rustup est en mémoire temporaire
+        id: rustup
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.RUSTUP_HOME }}
+          key: ${{ runner.os }}-rustup-amd64-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rustup-amd64
       - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
-        id: registry-cargo
+        id: cargo
         uses: actions/cache@v4
         with:
           path: ${{ env.CARGO_HOME }}
-          key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock
+          key: ${{ runner.os }}-cargo-amd64-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-registry-Cargo.lock
+            ${{ runner.os }}-cargo-amd64
       - name: Rechercher si le répertoire de construction est en mémoire temporaire
-        id: target-cargo
+        id: target
         uses: actions/cache@v4
         with:
           path: ./target
-          key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock
+          key: ${{ runner.os }}-target-amd64-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-target-Cargo.lock
+            ${{ runner.os }}-target-amd64
+      - name: Installer rustup
+        if: steps.rustup.outputs.cache-hit != 'true'
+        run: |
+          wget -O - https://sh.rustup.rs | sh -s -- -y
       - name: Construire l'application
         run:  |
           rustup --version
           cargo --version
-          cargo build --release --example afficher_jour
+          cargo build --release --example afficher_jour --example determiner_localisation
+      - name: Auditer les dépendances
+        run: |
+          cargo audit
+      - name: Attester l'origine des exécutables
+        if: ${{ github.ref == 'refs/heads/master' }} 
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            ./target/release/examples/afficher_jour
+            ./target/release/examples/determiner_localisation
       - uses: actions/upload-artifact@v4
         with:
-          name: gestion_ecran_eink_exemple
-          path: ./target/release/examples/afficher_jour
+          name: exemples_utilitaire_peripherique_amd64
+          path: |
+            ./target/release/examples/afficher_jour
+            ./target/release/examples/determiner_localisation
           retention-days: 1
           if-no-files-found: error
   construire-armv6:
@@ -70,33 +98,57 @@ jobs:
         - name: Préparer le compilateur pour la compilation croisée ARMv6
           run: |
             sudo apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl
-            rustup target add arm-unknown-linux-gnueabihf
             tar -xf $COMPILATEUR_CROISE
             mv .cargo/config-compilation-croisee .cargo/config
+        - name: Rechercher si le répertoire rustup est en mémoire temporaire
+          id: rustup
+          uses: actions/cache@v4
+          with:
+            path: ${{ env.RUSTUP_HOME }}
+            key: ${{ runner.os }}-rustup-armv6-${{ hashFiles('Cargo.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-rustup-armv6
         - name: Rechercher si le répertoire des dépendances est en mémoire temporaire
-          id: registry-cargo
+          id: cargo
           uses: actions/cache@v4
           with:
             path: ${{ env.CARGO_HOME }}
-            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-registry-Cargo.lock-armv6
+            key: ${{ runner.os }}-cargo-armv6-${{ hashFiles('Cargo.lock') }}
             restore-keys: |
-              ${{ runner.os }}-registry-Cargo.lock
+              ${{ runner.os }}-cargo-armv6
         - name: Rechercher si le répertoire de construction est en mémoire temporaire
-          id: target-cargo
+          id: target
           uses: actions/cache@v4
           with:
             path: ./target
-            key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}-target-Cargo.lock-armv6
+            key: ${{ runner.os }}-target-armv6-${{ hashFiles('Cargo.lock') }}
             restore-keys: |
-              ${{ runner.os }}-target-Cargo.lock
+              ${{ runner.os }}-target-armv6
+        - name: Installer rustup
+          if: steps.rustup.outputs.cache-hit != 'true'
+          run: |
+            wget -O - https://sh.rustup.rs | sh -s -- -y
+            rustup target add arm-unknown-linux-gnueabihf
         - name: Construire l'application
           run:  |
             rustup --version
             cargo --version
-            cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype
+            cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype --example determiner_localisation
+        - name: Auditer les dépendances
+          run: |
+            cargo audit
+        - name: Attester l'origine des exécutables
+          if: ${{ github.ref == 'refs/heads/master' }} 
+          uses: actions/attest-build-provenance@v1
+          with:
+            subject-path: |
+              ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+              ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
         - uses: actions/upload-artifact@v4
           with:
-            name: afficher_jour_rusttype_armv6
-            path: ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+            name: exemples_utilitaire_peripherique_armv6
+            path: |
+              ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+              ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
             retention-days: 1
             if-no-files-found: error
