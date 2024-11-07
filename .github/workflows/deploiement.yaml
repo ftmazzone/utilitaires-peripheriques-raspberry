@@ -52,6 +52,9 @@ jobs:
           rustup --version
           cargo --version
           cargo build --release --example afficher_jour --example determiner_localisation
+      - name: Auditer les dépendances
+        run: |
+          cargo audit  
       - uses: actions/upload-artifact@v4
         with:
           name: exemples_utilitaire_peripherique_amd64
@@ -119,6 +122,9 @@ jobs:
             rustup --version
             cargo --version
             cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype --example determiner_localisation
+        - name: Auditer les dépendances
+          run: |
+            cargo audit  
         - uses: actions/upload-artifact@v4
           with:
             name: exemples_utilitaire_peripherique_armv6
