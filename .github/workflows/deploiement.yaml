@@ -55,7 +55,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: exemples_utilitaire_peripherique_amd64
-          path: ./target/release/examples/afficher_jour
+          path: |
+            ./target/release/examples/afficher_jour
+            ./target/release/examples/determiner_localisation
           retention-days: 1
           if-no-files-found: error
   construire-armv6:
@@ -119,7 +121,7 @@ jobs:
             cargo build --release --target arm-unknown-linux-gnueabihf --example afficher_jour_rusttype
         - uses: actions/upload-artifact@v4
           with:
-            name: afficher_jour_rusttype_armv6
+            name: exemples_utilitaire_peripherique_armv6
             path: ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
             retention-days: 1
             if-no-files-found: error
