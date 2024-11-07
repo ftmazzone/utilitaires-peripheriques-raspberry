@@ -17,6 +17,10 @@ jobs:
   construire:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     steps:
       - uses: actions/checkout@v4
       - name: Rechercher si le répertoire rustup est en mémoire temporaire
@@ -54,7 +58,13 @@ jobs:
           cargo build --release --example afficher_jour --example determiner_localisation
       - name: Auditer les dépendances
         run: |
-          cargo audit  
+          cargo audit
+      - name: Signer les exécutables
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            ./target/arm-unknown-linux-gnueabihf/release/examples/afficher_jour_rusttype
+            ./target/arm-unknown-linux-gnueabihf/release/examples/determiner_localisation
       - uses: actions/upload-artifact@v4
         with:
           name: exemples_utilitaire_peripherique_amd64
@@ -70,6 +80,10 @@ jobs:
       env:
         COMPILATEUR_CROISE: cross-gcc-12.2.0-pi_0-1.tar.gz
         ADRESSE_COMPILATEUR_CROISE: https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bookworm/GCC%2012.2.0/Raspberry%20Pi%201%2C%20Zero/cross-gcc-12.2.0-pi_0-1.tar.gz/download -O cross-gcc-12.2.0-pi_0-1.tar.gz
+      permissions:
+        id-token: write
+        contents: read
+        attestations: write
       steps:
         - uses: actions/checkout@v4
         - name: Rechercher si le compilateur croisé pour Raspberry Pi Zero est en mémoire temporaire
