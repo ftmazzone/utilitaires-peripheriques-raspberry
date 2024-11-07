@@ -82,6 +82,7 @@ jobs:
           run: |
             sudo apt-get install gcc-arm-linux-gnueabihf wget libssl-dev pkg-config make perl
             tar -xf $COMPILATEUR_CROISE
+            mv .cargo/config-compilation-croisee .cargo/config
         - name: Rechercher si le répertoire rustup est en mémoire temporaire
           id: rustup
           uses: actions/cache@v4
@@ -111,7 +112,6 @@ jobs:
           run: |
             wget -O - https://sh.rustup.rs | sh -s -- -y
             rustup target add arm-unknown-linux-gnueabihf
-            mv .cargo/config-compilation-croisee .cargo/config
         - name: Construire l'application
           run:  |
             rustup --version
